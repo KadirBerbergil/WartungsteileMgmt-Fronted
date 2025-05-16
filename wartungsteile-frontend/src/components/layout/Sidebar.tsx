@@ -1,3 +1,6 @@
+// src/components/layout/Sidebar.tsx
+import { NavLink } from 'react-router-dom';
+
 const Sidebar = () => {
   return (
     <div className="h-screen w-64 bg-white shadow-md">
@@ -7,19 +10,35 @@ const Sidebar = () => {
       <nav className="p-4">
         <ul className="space-y-2">
           <li>
-            <a href="/" className="block p-2 rounded hover:bg-light text-dark hover:text-primary">
+            <NavLink 
+              to="/" 
+              className={({ isActive }) => 
+                `block p-2 rounded ${isActive ? 'bg-light text-primary' : 'text-dark hover:bg-light hover:text-primary'}`
+              }
+              end
+            >
               Dashboard
-            </a>
+            </NavLink>
           </li>
           <li>
-            <a href="/machines" className="block p-2 rounded hover:bg-light text-dark hover:text-primary">
+            <NavLink 
+              to="/machines" 
+              className={({ isActive }) => 
+                `block p-2 rounded ${isActive ? 'bg-light text-primary' : 'text-dark hover:bg-light hover:text-primary'}`
+              }
+            >
               Maschinen
-            </a>
+            </NavLink>
           </li>
           <li>
-            <a href="/parts" className="block p-2 rounded hover:bg-light text-dark hover:text-primary">
+            <NavLink 
+              to="/parts" 
+              className={({ isActive }) => 
+                `block p-2 rounded ${isActive ? 'bg-light text-primary' : 'text-dark hover:bg-light hover:text-primary'}`
+              }
+            >
               Wartungsteile
-            </a>
+            </NavLink>
           </li>
         </ul>
       </nav>
