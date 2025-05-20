@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/dashboard/Dashboard'
 import MachineList from './pages/machines/MachineList'
+
 // import MachineList from './pages/machines/MachineList'
 // import MachineDetail from './pages/machines/MachineDetail'
 // import MaintenancePartsList from './pages/parts/MaintenancePartsList'
