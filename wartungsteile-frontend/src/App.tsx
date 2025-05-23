@@ -3,10 +3,8 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/dashboard/Dashboard'
 import MachineList from './pages/machines/MachineList'
-
-// import MachineList from './pages/machines/MachineList'
-// import MachineDetail from './pages/machines/MachineDetail'
-// import MaintenancePartsList from './pages/parts/MaintenancePartsList'
+import MachineDetail from './pages/machines/MachineDetail'
+import MaintenancePartsList from './pages/parts/MaintenancePartsList'
 
 function App() {
   return (
@@ -14,8 +12,8 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="machines" element={<MachineList />} />
-        {/* <Route path="machines/:id" element={<MachineDetail />} /> */}
-        {/* <Route path="parts" element={<MaintenancePartsList />} /> */}
+        <Route path="machines/:id" element={<MachineDetail />} />
+        <Route path="parts" element={<MaintenancePartsList />} />
       </Route>
     </Routes>
   )
