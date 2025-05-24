@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartCreate.tsx - Mit echter Backend-Integration
+// src/pages/parts/MaintenancePartCreate.tsx - Responsive Version (Zoom-Problem behoben)
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -63,9 +63,9 @@ const MaintenancePartCreate = () => {
       errors.push('Lagerbestand kann nicht negativ sein');
     }
     
-    // Teilenummer Format prüfen (optional)
-    if (formData.partNumber && !formData.partNumber.match(/^[A-Z0-9-]+$/i)) {
-      errors.push('Teilenummer darf nur Buchstaben, Zahlen und Bindestriche enthalten');
+    // Teilenummer Format prüfen (relaxed version)
+    if (formData.partNumber && !formData.partNumber.match(/^[A-Z0-9-\s]+$/i)) {
+      errors.push('Teilenummer darf nur Buchstaben, Zahlen, Bindestriche und Leerzeichen enthalten');
     }
     
     setValidationErrors(errors);
@@ -155,18 +155,19 @@ const MaintenancePartCreate = () => {
   const isFormValid = formData.partNumber.trim() && formData.name.trim() && formData.price > 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header - kompakter */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* RESPONSIVE HEADER - Stack bei kleineren Bildschirmen */}
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+        {/* Linke Seite - Titel und Navigation */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <Link 
             to="/parts"
-            className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors font-medium"
+            className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors font-medium w-fit"
           >
             <ArrowLeftIcon className="h-4 w-4" />
             <span>Zurück zur Liste</span>
           </Link>
-          <div className="h-6 w-px bg-gray-300"></div>
+          <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
               <PlusIcon className="h-4 w-4 text-green-600" />
@@ -177,11 +178,11 @@ const MaintenancePartCreate = () => {
           </div>
         </div>
 
-        {/* Buttons oben rechts - immer sichtbar! */}
-        <div className="flex items-center space-x-3">
+        {/* Rechte Seite - Buttons - Stack bei kleineren Bildschirmen */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3">
           <Link
             to="/parts"
-            className="px-4 py-2 text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 text-center text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             Abbrechen
           </Link>
@@ -215,21 +216,21 @@ const MaintenancePartCreate = () => {
         </div>
       </div>
 
-      {/* Kompakteres Grid-Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* RESPONSIVE GRID - Stack auf kleineren Bildschirmen */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         
-        {/* Formular - 3/4 der Breite */}
-        <div className="lg:col-span-3">
+        {/* Formular - 3/4 der Breite auf großen Bildschirmen, full-width auf kleinen */}
+        <div className="xl:col-span-3">
           {/* Formular mit ID für externen Submit-Button */}
           <form id="create-part-form" onSubmit={handleSubmit} className="space-y-6">
             
             {/* Grunddaten Karte */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">Grunddaten</h2>
               
               <div className="space-y-6">
-                {/* Teilenummer und Kategorie */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Teilenummer und Kategorie - Stack auf mobil */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Teilenummer *
@@ -239,7 +240,7 @@ const MaintenancePartCreate = () => {
                       name="partNumber"
                       value={formData.partNumber}
                       onChange={handleInputChange}
-                      placeholder="z.B. A-12345"
+                      placeholder="z.B. DDR5$ oder A-12345"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       required
                     />
@@ -274,14 +275,14 @@ const MaintenancePartCreate = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="z.B. Antriebsriemen"
+                    placeholder="z.B. DSRDSRD"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     required
                   />
                 </div>
 
-                {/* Preis und Lagerbestand */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Preis und Lagerbestand - Stack auf mobil */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Preis (€) *
@@ -372,9 +373,9 @@ const MaintenancePartCreate = () => {
           </form>
         </div>
 
-        {/* Live-Vorschau Sidebar */}
-        <div className="lg:col-span-1">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 sticky top-6">
+        {/* Live-Vorschau Sidebar - Responsive */}
+        <div className="xl:col-span-1">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6 xl:sticky xl:top-6">
             <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-200">
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm">👁</span>
@@ -382,11 +383,11 @@ const MaintenancePartCreate = () => {
               <h3 className="text-lg font-semibold text-gray-800">Live-Vorschau</h3>
             </div>
             
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Teilenummer */}
               <div>
                 <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Teilenummer</div>
-                <div className="text-base font-bold text-gray-900">
+                <div className="text-base font-bold text-gray-900 break-words">
                   {formData.partNumber || <span className="text-gray-400 italic font-normal">Noch nicht eingegeben</span>}
                 </div>
               </div>
@@ -394,7 +395,7 @@ const MaintenancePartCreate = () => {
               {/* Name */}
               <div>
                 <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Name</div>
-                <div className="text-base font-semibold text-gray-900">
+                <div className="text-base font-semibold text-gray-900 break-words">
                   {formData.name || <span className="text-gray-400 italic font-normal">Noch nicht eingegeben</span>}
                 </div>
               </div>
@@ -425,7 +426,7 @@ const MaintenancePartCreate = () => {
               {formData.manufacturer && (
                 <div>
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Hersteller</div>
-                  <div className="text-base font-semibold text-gray-900">{formData.manufacturer}</div>
+                  <div className="text-base font-semibold text-gray-900 break-words">{formData.manufacturer}</div>
                 </div>
               )}
             </div>
@@ -453,6 +454,39 @@ const MaintenancePartCreate = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile Action Buttons - Nur auf kleinen Bildschirmen sichtbar */}
+      <div className="xl:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
+        <div className="flex gap-3 max-w-md mx-auto">
+          <Link
+            to="/parts"
+            className="flex-1 px-4 py-3 text-center text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Abbrechen
+          </Link>
+          <button
+            type="submit"
+            form="create-part-form"
+            disabled={isSaving || !isFormValid}
+            className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-all disabled:cursor-not-allowed"
+          >
+            {isSaving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Erstellen...
+              </>
+            ) : (
+              <>
+                <CheckIcon className="h-4 w-4 mr-2" />
+                Erstellen
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Spacer für mobile Fixed Buttons */}
+      <div className="xl:hidden h-20"></div>
     </div>
   );
 };

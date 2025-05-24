@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartsList.tsx - Verbesserte Version
+// src/pages/parts/MaintenancePartsList.tsx - Responsive Table Layout
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -39,41 +39,41 @@ const MaintenancePartsList = () => {
     };
 
     return (
-      <span className={`px-3 py-1 text-xs font-medium rounded-full border ${styles[category as keyof typeof styles] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${styles[category as keyof typeof styles] || 'bg-gray-100 text-gray-800'}`}>
         {labels[category as keyof typeof labels] || category}
       </span>
     );
   };
 
-  // Lagerbestand Status
+  // Lagerbestand Status - Kompakter
   const getStockStatus = (quantity: number) => {
     if (quantity === 0) {
       return (
         <div className="flex items-center space-x-1 text-red-600">
-          <ExclamationTriangleIcon className="h-4 w-4" />
+          <ExclamationTriangleIcon className="h-3 w-3" />
           <span className="text-sm font-medium">Ausverkauft</span>
         </div>
       );
     } else if (quantity <= 3) {
       return (
         <div className="flex items-center space-x-1 text-yellow-600">
-          <ExclamationTriangleIcon className="h-4 w-4" />
+          <ExclamationTriangleIcon className="h-3 w-3" />
           <span className="text-sm font-medium">{quantity} (Niedrig)</span>
         </div>
       );
     } else {
       return (
         <div className="flex items-center space-x-1 text-green-600">
-          <CubeIcon className="h-4 w-4" />
-          <span className="text-sm font-medium">{quantity} verfügbar</span>
+          <CubeIcon className="h-3 w-3" />
+          <span className="text-sm font-medium">{quantity}</span>
         </div>
       );
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 max-w-full">
+      {/* Header - Responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Wartungsteile</h1>
@@ -81,18 +81,18 @@ const MaintenancePartsList = () => {
         </div>
         <Link 
           to="/parts/new"
-          className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg"
+          className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg w-fit"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Neues Wartungsteil</span>
         </Link>
       </div>
 
-      {/* Suchfeld */}
+      {/* Suchfeld - Responsive */}
       <div className="relative max-w-md">
         <input
           type="text"
-          placeholder="Nach Teil suchen (Nummer, Name, Hersteller)..."
+          placeholder="Nach Teil suchen..."
           className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -100,8 +100,8 @@ const MaintenancePartsList = () => {
         <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
       </div>
 
-      {/* Statistiken */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Statistiken - Responsive Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -146,7 +146,7 @@ const MaintenancePartsList = () => {
         </div>
       </div>
 
-      {/* Wartungsteile-Tabelle */}
+      {/* Wartungsteile-Tabelle/Cards - Responsive */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center">
@@ -164,78 +164,127 @@ const MaintenancePartsList = () => {
             </p>
           </div>
         ) : filteredParts && filteredParts.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Teilenummer & Name
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kategorie
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Preis
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lagerbestand
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Hersteller
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aktionen
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredParts.map((part, index) => (
-                  <tr key={`${part.id}-${index}`} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="text-sm font-medium text-primary">{part.partNumber}</div>
-                        <div className="text-sm text-gray-600">{part.name}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {getCategoryBadge(part.category)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-800">
-                        {part.price.toFixed(2)} €
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {getStockStatus(part.stockQuantity)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600">
-                        {part.manufacturer || <span className="text-gray-400 italic">Nicht angegeben</span>}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <Link 
-                          to={`/parts/${part.id}`} 
-                          className="flex items-center space-x-1 text-primary hover:text-primary/80 text-sm font-medium transition-colors"
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                          <span>Details</span>
-                        </Link>
-                        <Link 
-                          to={`/parts/${part.id}/edit`}
-                          className="flex items-center space-x-1 text-secondary hover:text-secondary/80 text-sm font-medium transition-colors"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                          <span>Bearbeiten</span>
-                        </Link>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop Tabelle - Hidden auf Mobile */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+                      Teil
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Kategorie
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                      Preis
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Lagerbestand
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Hersteller
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                      Aktionen
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredParts.map((part, index) => (
+                    <tr key={`${part.id}-${index}`} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <div>
+                          <div className="text-sm font-medium text-primary break-words">{part.partNumber}</div>
+                          <div className="text-sm text-gray-600 break-words">{part.name}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        {getCategoryBadge(part.category)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-sm font-medium text-gray-800">
+                          {part.price.toFixed(2)} €
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        {getStockStatus(part.stockQuantity)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-600 break-words">
+                          {part.manufacturer || <span className="text-gray-400 italic">Nicht angegeben</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center space-x-2">
+                          <Link 
+                            to={`/parts/${part.id}`} 
+                            className="flex items-center space-x-1 text-primary hover:text-primary/80 text-sm font-medium transition-colors"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                            <span className="hidden xl:inline">Details</span>
+                          </Link>
+                          <Link 
+                            to={`/parts/${part.id}/edit`}
+                            className="flex items-center space-x-1 text-secondary hover:text-secondary/80 text-sm font-medium transition-colors"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                            <span className="hidden xl:inline">Bearbeiten</span>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile/Tablet Cards - Visible nur auf Mobile */}
+            <div className="lg:hidden divide-y divide-gray-200">
+              {filteredParts.map((part, index) => (
+                <div key={`mobile-${part.id}-${index}`} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-primary break-words">{part.partNumber}</div>
+                      <div className="text-sm text-gray-600 break-words mb-2">{part.name}</div>
+                      <div className="mb-2">{getCategoryBadge(part.category)}</div>
+                    </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <Link 
+                        to={`/parts/${part.id}`} 
+                        className="p-2 text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                      </Link>
+                      <Link 
+                        to={`/parts/${part.id}/edit`}
+                        className="p-2 text-secondary hover:text-secondary/80 transition-colors"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Preis:</span>
+                      <div className="font-medium text-gray-800">{part.price.toFixed(2)} €</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Lagerbestand:</span>
+                      <div>{getStockStatus(part.stockQuantity)}</div>
+                    </div>
+                    {part.manufacturer && (
+                      <div className="col-span-2">
+                        <span className="text-gray-500">Hersteller:</span>
+                        <div className="text-gray-600 break-words">{part.manufacturer}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="p-12 text-center">
             <CubeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
