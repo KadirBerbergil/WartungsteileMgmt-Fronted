@@ -1,4 +1,4 @@
-// src/pages/dashboard/Dashboard.tsx - Dashboard mit echten Daten!
+// src/pages/dashboard/Dashboard.tsx - TypeScript-Fehler behoben
 import { useNavigate } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -6,13 +6,21 @@ import {
   CogIcon, 
   WrenchScrewdriverIcon, 
   CalendarDaysIcon,
-  ChartBarIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
   CubeIcon,
   XCircleIcon
 } from '@heroicons/react/24/outline';
+
+// TypeScript Interface für Aktivitäten
+interface Activity {
+  icon: React.ComponentType<React.ComponentProps<'svg'>>;
+  color: string;
+  title: string;
+  description: string;
+  time: Date;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -112,9 +120,9 @@ const Dashboard = () => {
     }
   ];
 
-  // Echte letzte Aktivitäten basierend auf den Daten
-  const getRecentActivities = () => {
-    const activities = [];
+  // Echte letzte Aktivitäten basierend auf den Daten - mit korrekter Typisierung
+  const getRecentActivities = (): Activity[] => {
+    const activities: Activity[] = [];
     
     // Wartungen aus den letzten Tagen
     if (machines) {

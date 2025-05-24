@@ -1,5 +1,6 @@
 // src/pages/parts/MaintenancePartsList.tsx - Verbesserte Version
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMaintenanceParts } from '../../hooks/useParts';
 import { 
   MagnifyingGlassIcon, 
@@ -211,14 +212,20 @@ const MaintenancePartsList = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <button className="flex items-center space-x-1 text-primary hover:text-primary/80 text-sm font-medium">
+                        <Link 
+                          to={`/parts/${part.id}`} 
+                          className="flex items-center space-x-1 text-primary hover:text-primary/80 text-sm font-medium transition-colors"
+                        >
                           <EyeIcon className="h-4 w-4" />
                           <span>Details</span>
-                        </button>
-                        <button className="flex items-center space-x-1 text-secondary hover:text-secondary/80 text-sm font-medium">
+                        </Link>
+                        <Link 
+                          to={`/parts/${part.id}/edit`}
+                          className="flex items-center space-x-1 text-secondary hover:text-secondary/80 text-sm font-medium transition-colors"
+                        >
                           <PencilIcon className="h-4 w-4" />
                           <span>Bearbeiten</span>
-                        </button>
+                        </Link>
                       </div>
                     </td>
                   </tr>

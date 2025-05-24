@@ -1,6 +1,7 @@
 // src/pages/machines/MachineDetail.tsx
 import { useParams, Link } from 'react-router-dom';
 import { useMachineDetail } from '../../hooks/useMachines';
+import { WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
 
 const MachineDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -153,14 +154,21 @@ const MachineDetail = () => {
           </div>
 
           {/* Aktionsbuttons */}
-          <div className="flex space-x-4">
-            <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded">
+          <div className="flex flex-wrap gap-4">
+            <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg">
               Maschine bearbeiten
             </button>
-            <button className="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded">
+            <button className="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg">
               Wartung durchführen
             </button>
-            <button className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded">
+            <Link 
+              to={`/machines/${machine.id}/parts`}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg inline-flex items-center space-x-2"
+            >
+              <WrenchScrewdriverIcon className="h-4 w-4" />
+              <span>Wartungsteile anzeigen</span>
+            </Link>
+            <button className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-all">
               Betriebsstunden aktualisieren
             </button>
           </div>
