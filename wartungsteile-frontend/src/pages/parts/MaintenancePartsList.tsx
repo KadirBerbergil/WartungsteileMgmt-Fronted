@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartsList.tsx - Responsive Table Layout
+// src/pages/parts/MaintenancePartsList.tsx - Responsive Table Layout mit professionellem Scrolling
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -146,7 +146,7 @@ const MaintenancePartsList = () => {
         </div>
       </div>
 
-      {/* Wartungsteile-Tabelle/Cards - Responsive */}
+      {/* Wartungsteile-Tabelle/Cards - Professionelles Scrolling */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center">
@@ -165,124 +165,128 @@ const MaintenancePartsList = () => {
           </div>
         ) : filteredParts && filteredParts.length > 0 ? (
           <>
-            {/* Desktop Tabelle - Hidden auf Mobile */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
-                      Teil
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                      Kategorie
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                      Preis
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                      Lagerbestand
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                      Hersteller
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                      Aktionen
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredParts.map((part, index) => (
-                    <tr key={`${part.id}-${index}`} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4">
-                        <div>
-                          <div className="text-sm font-medium text-primary break-words">{part.partNumber}</div>
-                          <div className="text-sm text-gray-600 break-words">{part.name}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        {getCategoryBadge(part.category)}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="text-sm font-medium text-gray-800">
-                          {part.price.toFixed(2)} €
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        {getStockStatus(part.stockQuantity)}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="text-sm text-gray-600 break-words">
-                          {part.manufacturer || <span className="text-gray-400 italic">Nicht angegeben</span>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center space-x-2">
-                          <Link 
-                            to={`/parts/${part.id}`} 
-                            className="flex items-center space-x-1 text-primary hover:text-primary/80 text-sm font-medium transition-colors"
-                          >
-                            <EyeIcon className="h-4 w-4" />
-                            <span className="hidden xl:inline">Details</span>
-                          </Link>
-                          <Link 
-                            to={`/parts/${part.id}/edit`}
-                            className="flex items-center space-x-1 text-secondary hover:text-secondary/80 text-sm font-medium transition-colors"
-                          >
-                            <PencilIcon className="h-4 w-4" />
-                            <span className="hidden xl:inline">Bearbeiten</span>
-                          </Link>
-                        </div>
-                      </td>
+            {/* Desktop Tabelle - Sauberes Scrolling */}
+            <div className="hidden lg:block">
+              <div className="overflow-x-auto max-h-[calc(100vh-400px)]">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+                        Teil
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                        Kategorie
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                        Preis
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                        Lagerbestand
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                        Hersteller
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                        Aktionen
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredParts.map((part, index) => (
+                      <tr key={`${part.id}-${index}`} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-4">
+                          <div>
+                            <div className="text-sm font-medium text-primary break-words">{part.partNumber}</div>
+                            <div className="text-sm text-gray-600 break-words">{part.name}</div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          {getCategoryBadge(part.category)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-sm font-medium text-gray-800">
+                            {part.price.toFixed(2)} €
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          {getStockStatus(part.stockQuantity)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-sm text-gray-600 break-words">
+                            {part.manufacturer || <span className="text-gray-400 italic">Nicht angegeben</span>}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center space-x-2">
+                            <Link 
+                              to={`/parts/${part.id}`} 
+                              className="flex items-center space-x-1 text-primary hover:text-primary/80 text-sm font-medium transition-colors"
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                              <span className="hidden xl:inline">Details</span>
+                            </Link>
+                            <Link 
+                              to={`/parts/${part.id}/edit`}
+                              className="flex items-center space-x-1 text-secondary hover:text-secondary/80 text-sm font-medium transition-colors"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                              <span className="hidden xl:inline">Bearbeiten</span>
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            {/* Mobile/Tablet Cards - Visible nur auf Mobile */}
-            <div className="lg:hidden divide-y divide-gray-200">
-              {filteredParts.map((part, index) => (
-                <div key={`mobile-${part.id}-${index}`} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-primary break-words">{part.partNumber}</div>
-                      <div className="text-sm text-gray-600 break-words mb-2">{part.name}</div>
-                      <div className="mb-2">{getCategoryBadge(part.category)}</div>
-                    </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      <Link 
-                        to={`/parts/${part.id}`} 
-                        className="p-2 text-primary hover:text-primary/80 transition-colors"
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </Link>
-                      <Link 
-                        to={`/parts/${part.id}/edit`}
-                        className="p-2 text-secondary hover:text-secondary/80 transition-colors"
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Preis:</span>
-                      <div className="font-medium text-gray-800">{part.price.toFixed(2)} €</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Lagerbestand:</span>
-                      <div>{getStockStatus(part.stockQuantity)}</div>
-                    </div>
-                    {part.manufacturer && (
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Hersteller:</span>
-                        <div className="text-gray-600 break-words">{part.manufacturer}</div>
+            {/* Mobile/Tablet Cards - Sauberes Scrolling */}
+            <div className="lg:hidden">
+              <div className="divide-y divide-gray-200 max-h-[calc(100vh-400px)] overflow-y-auto">
+                {filteredParts.map((part, index) => (
+                  <div key={`mobile-${part.id}-${index}`} className="p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-primary break-words">{part.partNumber}</div>
+                        <div className="text-sm text-gray-600 break-words mb-2">{part.name}</div>
+                        <div className="mb-2">{getCategoryBadge(part.category)}</div>
                       </div>
-                    )}
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Link 
+                          to={`/parts/${part.id}`} 
+                          className="p-2 text-primary hover:text-primary/80 transition-colors"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </Link>
+                        <Link 
+                          to={`/parts/${part.id}/edit`}
+                          className="p-2 text-secondary hover:text-secondary/80 transition-colors"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-500">Preis:</span>
+                        <div className="font-medium text-gray-800">{part.price.toFixed(2)} €</div>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Lagerbestand:</span>
+                        <div>{getStockStatus(part.stockQuantity)}</div>
+                      </div>
+                      {part.manufacturer && (
+                        <div className="col-span-2">
+                          <span className="text-gray-500">Hersteller:</span>
+                          <div className="text-gray-600 break-words">{part.manufacturer}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </>
         ) : (

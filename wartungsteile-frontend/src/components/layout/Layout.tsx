@@ -1,18 +1,22 @@
-// src/components/layout/Layout.tsx - Scroll-Problem ENDGÜLTIG behoben
+// src/components/layout/Layout.tsx - Professionelles Scrolling ohne Overflow-Probleme
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
 const Layout = () => {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
-        {/* ENDGÜLTIGE LÖSUNG: Korrektes Scrolling mit ausreichend Platz */}
-        <main className="flex-1 overflow-y-auto bg-gray-50" style={{ height: 'calc(100vh - 64px)' }}>
-          <div className="p-6 pb-12">
-            <Outlet />
+        {/* PROFESSIONELLE LÖSUNG: Sauberes Scrolling mit klaren Grenzen */}
+        <main className="flex-1 overflow-hidden bg-gray-50 relative">
+          <div className="h-full overflow-y-auto">
+            <div className="p-6 min-h-full">
+              <div className="pb-8">
+                <Outlet />
+              </div>
+            </div>
           </div>
         </main>
       </div>
