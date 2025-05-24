@@ -1,4 +1,4 @@
-// src/pages/machines/MachineList.tsx - Verbesserte Version
+// src/pages/machines/MachineList.tsx - Mit PDF-Upload Integration
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
@@ -13,7 +13,9 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
-  WrenchScrewdriverIcon
+  WrenchScrewdriverIcon,
+  DocumentArrowUpIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 const MachineList = () => {
@@ -90,16 +92,61 @@ const MachineList = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header mit erweiterten Aktionen */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Maschinen</h1>
           <p className="text-gray-600 mt-1">CNC-Lademagazine verwalten und überwachen</p>
         </div>
-        <button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg">
-          <PlusIcon className="h-5 w-5" />
-          <span>Neue Maschine</span>
-        </button>
+        
+        {/* Button-Gruppe mit PDF-Upload */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* PDF-Upload Button - Prominenter platziert */}
+          <Link 
+            to="/machines/upload"
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg group"
+          >
+            <div className="flex items-center space-x-2">
+              <SparklesIcon className="h-5 w-5 group-hover:animate-pulse" />
+              <DocumentArrowUpIcon className="h-5 w-5" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="font-medium">PDF hochladen</span>
+              <span className="text-xs text-green-200">Werkstattauftrag</span>
+            </div>
+          </Link>
+          
+          {/* Manuell erstellen Button */}
+          <button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg border-2 border-transparent hover:border-blue-300">
+            <PlusIcon className="h-5 w-5" />
+            <span>Manuell erstellen</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Info-Banner für PDF-Upload */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
+        <div className="flex items-center space-x-3">
+          <div className="flex-shrink-0">
+            <SparklesIcon className="h-6 w-6 text-green-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-medium text-green-800">
+              🤖 Intelligente Maschinenerstellung
+            </h3>
+            <p className="text-sm text-green-700 mt-1">
+              Laden Sie Ihren Werkstattauftrag (PDF) hoch und lassen Sie die KI automatisch alle Maschinendaten extrahieren und eine neue Maschine erstellen.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Link 
+              to="/machines/upload"
+              className="text-sm font-medium text-green-800 hover:text-green-900 underline"
+            >
+              Jetzt ausprobieren →
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Suchfeld */}
@@ -268,6 +315,26 @@ const MachineList = () => {
               <p className="text-gray-400 text-sm mt-2">
                 Versuche einen anderen Suchbegriff
               </p>
+            )}
+            
+            {/* Call-to-Action wenn keine Maschinen vorhanden */}
+            {!searchQuery && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <p className="text-sm text-gray-600 mb-4">Erstellen Sie Ihre erste Maschine:</p>
+                <div className="flex justify-center space-x-4">
+                  <Link 
+                    to="/machines/upload"
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors space-x-2"
+                  >
+                    <SparklesIcon className="h-4 w-4" />
+                    <span>PDF hochladen</span>
+                  </Link>
+                  <button className="inline-flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors space-x-2">
+                    <PlusIcon className="h-4 w-4" />
+                    <span>Manuell erstellen</span>
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         )}

@@ -24,6 +24,7 @@ function App() {
         <Route path="parts/new" element={<MaintenancePartCreate />} />
         <Route path="parts/:id" element={<MaintenancePartDetail />} />
         <Route path="parts/:id/edit" element={<MaintenancePartEdit />} />
+        <Route path="machines/upload" element={<PdfUploadExtractor />} />
       </Route>
     </Routes>
   )
