@@ -1,19 +1,26 @@
-// src/pages/parts/MaintenancePartsList.tsx - Responsive Table Layout mit professionellem Scrolling
+// src/pages/parts/MaintenancePartsList.tsx - Mit Löschen-Feature
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMaintenanceParts } from '../../hooks/useParts';
+import { maintenancePartService } from '../../services';
 import { 
   MagnifyingGlassIcon, 
   PlusIcon,
   EyeIcon,
   PencilIcon,
+  TrashIcon,
   CubeIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 const MaintenancePartsList = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState<{isOpen: boolean, part: any}>({isOpen: false, part: null});
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const { data: parts, isLoading, error } = useMaintenanceParts();
+  const queryClient = useQueryClient();
 
   // Filterfunktion für die Suche
   const filteredParts = parts?.filter(part => 
@@ -21,6 +28,39 @@ const MaintenancePartsList = () => {
     part.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     part.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Löschen-Dialog öffnen
+  const openDeleteDialog = (part: any) => {
+    setDeleteDialog({isOpen: true, part});
+  };
+
+  // Löschen-Dialog schließen
+  const closeDeleteDialog = () => {
+    setDeleteDialog({isOpen: false, part: null});
+  };
+
+  // Wartungsteil löschen
+  const handleDelete = async () => {
+    if (!deleteDialog.part) return;
+    
+    setIsDeleting(true);
+    try {
+      const success = await maintenancePartService.delete(deleteDialog.part.id);
+      if (success) {
+        // Cache invalidieren damit Liste aktualisiert wird
+        queryClient.invalidateQueries({ queryKey: ['maintenanceParts'] });
+        closeDeleteDialog();
+        console.log('✅ Wartungsteil erfolgreich gelöscht!');
+      } else {
+        alert('Fehler beim Löschen des Wartungsteils');
+      }
+    } catch (error: any) {
+      console.error('❌ Fehler beim Löschen:', error);
+      alert(`Fehler beim Löschen: ${error.response?.data || error.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Kategorie-Badge Styling
   const getCategoryBadge = (category: string) => {
@@ -232,6 +272,13 @@ const MaintenancePartsList = () => {
                               <PencilIcon className="h-4 w-4" />
                               <span className="hidden xl:inline">Bearbeiten</span>
                             </Link>
+                            <button
+                              onClick={() => openDeleteDialog(part)}
+                              className="flex items-center space-x-1 text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                              <span className="hidden xl:inline">Löschen</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -265,6 +312,12 @@ const MaintenancePartsList = () => {
                         >
                           <PencilIcon className="h-4 w-4" />
                         </Link>
+                        <button
+                          onClick={() => openDeleteDialog(part)}
+                          className="p-2 text-red-600 hover:text-red-800 transition-colors"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
                     
@@ -303,6 +356,49 @@ const MaintenancePartsList = () => {
           </div>
         )}
       </div>
+
+      {/* Lösch-Bestätigungsdialog */}
+      {deleteDialog.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Wartungsteil löschen</h3>
+                <p className="text-sm text-gray-500">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-sm text-gray-700">
+                Möchten Sie das Wartungsteil <strong>{deleteDialog.part?.partNumber}</strong> wirklich löschen?
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                <strong>Name:</strong> {deleteDialog.part?.name}
+              </p>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={closeDeleteDialog}
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                disabled={isDeleting}
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:bg-red-400 transition-colors"
+              >
+                {isDeleting ? 'Wird gelöscht...' : 'Löschen'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
