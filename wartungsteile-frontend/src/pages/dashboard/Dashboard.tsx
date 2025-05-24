@@ -1,7 +1,8 @@
-// src/pages/dashboard/Dashboard.tsx - TypeScript-Fehler behoben
+// src/pages/dashboard/Dashboard.tsx - Mit Charts erweitert
 import { useNavigate } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
 import { useMaintenanceParts } from '../../hooks/useParts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { 
   CogIcon, 
   WrenchScrewdriverIcon, 
@@ -34,18 +35,41 @@ const Dashboard = () => {
     inMaintenance: machines.filter(m => m.status === 'InMaintenance').length,
     outOfService: machines.filter(m => m.status === 'OutOfService').length,
     avgOperatingHours: machines.length > 0 ? Math.round(machines.reduce((sum, m) => sum + m.operatingHours, 0) / machines.length) : 0,
-    maintenanceDue: machines.filter(m => m.operatingHours > 1000).length, // Beispiel: über 1000h = wartungsfällig
+    maintenanceDue: machines.filter(m => m.operatingHours > 1000).length,
     recentMaintenances: machines.filter(m => m.lastMaintenanceDate && 
-      new Date(m.lastMaintenanceDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length // Letzte 30 Tage
+      new Date(m.lastMaintenanceDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
   } : { total: 0, active: 0, inMaintenance: 0, outOfService: 0, avgOperatingHours: 0, maintenanceDue: 0, recentMaintenances: 0 };
 
   const partStats = parts ? {
     total: parts.length,
     wearParts: parts.filter(p => p.category === 'WearPart').length,
+    spareParts: parts.filter(p => p.category === 'SparePart').length,
+    consumableParts: parts.filter(p => p.category === 'ConsumablePart').length,
+    toolParts: parts.filter(p => p.category === 'ToolPart').length,
     lowStock: parts.filter(p => p.stockQuantity <= 3 && p.stockQuantity > 0).length,
     outOfStock: parts.filter(p => p.stockQuantity === 0).length,
     totalValue: parts.reduce((sum, p) => sum + (p.price * p.stockQuantity), 0)
-  } : { total: 0, wearParts: 0, lowStock: 0, outOfStock: 0, totalValue: 0 };
+  } : { total: 0, wearParts: 0, spareParts: 0, consumableParts: 0, toolParts: 0, lowStock: 0, outOfStock: 0, totalValue: 0 };
+
+  // Chart-Daten vorbereiten
+  const machineStatusData = [
+    { name: 'Aktiv', value: machineStats.active, color: '#10B981' },
+    { name: 'In Wartung', value: machineStats.inMaintenance, color: '#F59E0B' },
+    { name: 'Außer Betrieb', value: machineStats.outOfService, color: '#EF4444' }
+  ].filter(item => item.value > 0); // Nur Daten mit Werten > 0 anzeigen
+
+  const partsData = [
+    { name: 'Verschleißteile', value: partStats.wearParts, color: '#EF4444' },
+    { name: 'Ersatzteile', value: partStats.spareParts, color: '#3B82F6' },
+    { name: 'Verbrauchsmaterial', value: partStats.consumableParts, color: '#F59E0B' },
+    { name: 'Werkzeuge', value: partStats.toolParts, color: '#10B981' }
+  ].filter(item => item.value > 0);
+
+  const stockData = [
+    { name: 'Gut verfügbar', value: partStats.total - partStats.lowStock - partStats.outOfStock, color: '#10B981' },
+    { name: 'Niedrig', value: partStats.lowStock, color: '#F59E0B' },
+    { name: 'Ausverkauft', value: partStats.outOfStock, color: '#EF4444' }
+  ].filter(item => item.value > 0);
 
   const mainCards = [
     {
@@ -124,7 +148,6 @@ const Dashboard = () => {
   const getRecentActivities = (): Activity[] => {
     const activities: Activity[] = [];
     
-    // Wartungen aus den letzten Tagen
     if (machines) {
       machines.forEach(machine => {
         if (machine.lastMaintenanceDate) {
@@ -143,7 +166,6 @@ const Dashboard = () => {
       });
     }
 
-    // Niedrige Bestände als Aktivität
     if (parts) {
       parts.filter(p => p.stockQuantity <= 3 && p.stockQuantity > 0).slice(0, 2).forEach(part => {
         activities.push({
@@ -154,10 +176,7 @@ const Dashboard = () => {
           time: new Date()
         });
       });
-    }
 
-    // Ausverkaufte Teile
-    if (parts) {
       parts.filter(p => p.stockQuantity === 0).slice(0, 1).forEach(part => {
         activities.push({
           icon: XCircleIcon,
@@ -170,6 +189,18 @@ const Dashboard = () => {
     }
 
     return activities.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 5);
+  };
+
+  // Custom Tooltip für die Charts
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-900">{`${label}: ${payload[0].value}`}</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -217,6 +248,107 @@ const Dashboard = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Charts Section - NEU! */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Maschinenstatus Pie Chart */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Maschinenstatus</h3>
+          {machinesLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : machineStatusData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={machineStatusData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({name, value}) => `${name}: ${value}`}
+                >
+                  {machineStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <p>Keine Maschinendaten verfügbar</p>
+            </div>
+          )}
+        </div>
+
+        {/* Wartungsteile Kategorien Bar Chart */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Wartungsteile Kategorien</h3>
+          {partsLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : partsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={partsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name" 
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  fontSize={12}
+                />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {partsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <p>Keine Wartungsteile verfügbar</p>
+            </div>
+          )}
+        </div>
+
+        {/* Lagerbestände Pie Chart */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Lagerbestände</h3>
+          {partsLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : stockData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={stockData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({name, value}) => `${name}: ${value}`}
+                >
+                  {stockData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <p>Keine Lagerbestandsdaten verfügbar</p>
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Haupt-Aktionskarten */}
