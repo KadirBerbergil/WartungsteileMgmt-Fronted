@@ -1,13 +1,14 @@
-// src/App.tsx
+// src/App.tsx - Korrekte Route-Reihenfolge
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/dashboard/Dashboard'
 import MachineList from './pages/machines/MachineList'
 import MachineDetail from './pages/machines/MachineDetail'
-import MachineMaintenancePartsList from './pages/machines/MachineMaintenancePartsList'  // ← Diese Zeile fehlt dir!
+import MachineMaintenancePartsList from './pages/machines/MachineMaintenancePartsList'
 import MaintenancePartsList from './pages/parts/MaintenancePartsList'
 import MaintenancePartDetail from './pages/parts/MaintenancePartDetail'
 import MaintenancePartEdit from './pages/parts/MaintenancePartEdit'
+import MaintenancePartCreate from './pages/parts/MaintenancePartCreate'
 
 function App() {
   return (
@@ -16,8 +17,10 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path="machines" element={<MachineList />} />
         <Route path="machines/:id" element={<MachineDetail />} />
-        <Route path="machines/:id/parts" element={<MachineMaintenancePartsList />} />  {/* ← Diese Zeile fehlt dir! */}
+        <Route path="machines/:id/parts" element={<MachineMaintenancePartsList />} />
         <Route path="parts" element={<MaintenancePartsList />} />
+        {/* WICHTIG: /parts/new MUSS VOR /parts/:id stehen! */}
+        <Route path="parts/new" element={<MaintenancePartCreate />} />
         <Route path="parts/:id" element={<MaintenancePartDetail />} />
         <Route path="parts/:id/edit" element={<MaintenancePartEdit />} />
       </Route>

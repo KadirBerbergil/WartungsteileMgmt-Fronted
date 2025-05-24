@@ -79,10 +79,13 @@ const MaintenancePartsList = () => {
           <h1 className="text-2xl font-bold text-gray-800">Wartungsteile</h1>
           <p className="text-gray-600 mt-1">Ersatz- und Verschleißteile verwalten</p>
         </div>
-        <button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg">
+        <Link 
+          to="/parts/new"
+          className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg"
+        >
           <PlusIcon className="h-5 w-5" />
           <span>Neues Wartungsteil</span>
-        </button>
+        </Link>
       </div>
 
       {/* Suchfeld */}
