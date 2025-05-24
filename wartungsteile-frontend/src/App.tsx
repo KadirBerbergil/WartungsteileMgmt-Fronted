@@ -1,4 +1,4 @@
-// src/App.tsx - Korrekte Route-Reihenfolge
+// src/App.tsx - Mit aktiviertem MachineMaintenanceWorkflow
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/dashboard/Dashboard'
@@ -23,11 +23,11 @@ function App() {
         <Route path="parts" element={<MaintenancePartsList />} />
         <Route path="parts/new" element={<MaintenancePartCreate />} />
         <Route path="parts/:id" element={<MaintenancePartDetail />} />
-        <Route path="parts/:id/edit" element={<MaintenancePartEdit />} />
-        <Route path="machines/upload" element={<PdfUploadExtractor />} />
+        {/* Temporär auskommentiert bis Export-Problem behoben ist */}
+        {/* <Route path="parts/:id/edit" element={<MaintenancePartEdit />} /> */}
       </Route>
     </Routes>
   )
 }
 
-export default App;
+export default App
