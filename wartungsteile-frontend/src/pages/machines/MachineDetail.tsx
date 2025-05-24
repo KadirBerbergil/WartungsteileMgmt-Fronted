@@ -1,7 +1,7 @@
-// src/pages/machines/MachineDetail.tsx
+// src/pages/machines/MachineDetail.tsx - Button funktional machen
 import { useParams, Link } from 'react-router-dom';
 import { useMachineDetail } from '../../hooks/useMachines';
-import { WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
+import { WrenchScrewdriverIcon, CogIcon } from '@heroicons/react/24/outline';
 
 const MachineDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -153,14 +153,21 @@ const MachineDetail = () => {
             )}
           </div>
 
-          {/* Aktionsbuttons */}
+          {/* Aktionsbuttons - HIER IST DIE ÄNDERUNG! */}
           <div className="flex flex-wrap gap-4">
             <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg">
               Maschine bearbeiten
             </button>
-            <button className="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg">
-              Wartung durchführen
-            </button>
+            
+            {/* ✅ WARTUNG DURCHFÜHREN BUTTON - JETZT FUNKTIONAL! */}
+            <Link 
+              to={`/machines/${machine.id}/maintenance`}
+              className="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg inline-flex items-center space-x-2"
+            >
+              <CogIcon className="h-4 w-4" />
+              <span>Wartung durchführen</span>
+            </Link>
+            
             <Link 
               to={`/machines/${machine.id}/parts`}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg inline-flex items-center space-x-2"

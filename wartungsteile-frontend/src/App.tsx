@@ -5,6 +5,7 @@ import Dashboard from './pages/dashboard/Dashboard'
 import MachineList from './pages/machines/MachineList'
 import MachineDetail from './pages/machines/MachineDetail'
 import MachineMaintenancePartsList from './pages/machines/MachineMaintenancePartsList'
+import MachineMaintenanceWorkflow from './pages/machines/MachineMaintenanceWorkflow'
 import MaintenancePartsList from './pages/parts/MaintenancePartsList'
 import MaintenancePartDetail from './pages/parts/MaintenancePartDetail'
 import MaintenancePartEdit from './pages/parts/MaintenancePartEdit'
@@ -18,8 +19,9 @@ function App() {
         <Route path="machines" element={<MachineList />} />
         <Route path="machines/:id" element={<MachineDetail />} />
         <Route path="machines/:id/parts" element={<MachineMaintenancePartsList />} />
+        {/* ✅ NEUE ROUTE FÜR WARTUNG */}
+        <Route path="machines/:id/maintenance" element={<MachineMaintenanceWorkflow />} />
         <Route path="parts" element={<MaintenancePartsList />} />
-        {/* WICHTIG: /parts/new MUSS VOR /parts/:id stehen! */}
         <Route path="parts/new" element={<MaintenancePartCreate />} />
         <Route path="parts/:id" element={<MaintenancePartDetail />} />
         <Route path="parts/:id/edit" element={<MaintenancePartEdit />} />
