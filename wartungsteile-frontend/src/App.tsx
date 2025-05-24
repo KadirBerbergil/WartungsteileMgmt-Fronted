@@ -19,7 +19,6 @@ function App() {
         <Route path="machines" element={<MachineList />} />
         <Route path="machines/:id" element={<MachineDetail />} />
         <Route path="machines/:id/parts" element={<MachineMaintenancePartsList />} />
-        {/* ✅ NEUE ROUTE FÜR WARTUNG */}
         <Route path="machines/:id/maintenance" element={<MachineMaintenanceWorkflow />} />
         <Route path="parts" element={<MaintenancePartsList />} />
         <Route path="parts/new" element={<MaintenancePartCreate />} />
@@ -30,4 +29,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
