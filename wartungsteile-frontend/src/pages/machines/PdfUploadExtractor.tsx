@@ -1,6 +1,8 @@
-// src/pages/machines/PdfUploadExtractor.tsx - Intelligente PDF-zu-Maschine-Extraktion
+// src/pages/machines/PdfUploadExtractor.tsx - KORRIGIERTE Version für Backend-Integration
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../../services';
 import { 
   CloudArrowUpIcon,
   DocumentTextIcon,
@@ -48,6 +50,7 @@ interface ExtractedMachineData {
 
 const PdfUploadExtractor = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -55,6 +58,7 @@ const PdfUploadExtractor = () => {
   const [extractedData, setExtractedData] = useState<ExtractedMachineData>({});
   const [step, setStep] = useState<'upload' | 'processing' | 'review' | 'complete'>('upload');
   const [errors, setErrors] = useState<string[]>([]);
+  const [createdMachineId, setCreatedMachineId] = useState<string>('');
 
   // Drag & Drop Handler
   const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -81,49 +85,18 @@ const PdfUploadExtractor = () => {
     }
   };
 
-  // Intelligente Text-Extraktion (simuliert OCR)
-  const extractTextFromPdf = async (_file: File): Promise<string> => {
-    // In einer echten Implementierung würde hier Tesseract.js oder ein Backend-Service verwendet
-    // Für die Demo simulieren wir die OCR-Erkennung
+  // ECHTE PDF-Text-Extraktion via Backend
+  const extractTextFromPdf = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('pdfFile', file);
     
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Simulierter OCR-Text basierend auf dem Werkstattauftrag
-        const simulatedOcrText = `
-FMB Maschinenbau
-Werkstattauftrag
-Aussteller:
-Produktions-Woche: 03/2010
-
-Kundendaten
-Kundenvorgang: 0000074391
-Kundennr.: 805317
-Kunde: EMCO
-
-Magazindaten mechanisch:
-Magazin-Typ: turbo ET 420
-Maschinen-Nr: 39-000561
-Artikel-Nr: 30-000562
-Synchroneinrichtung: nein
-Zuführkanal eing.: D 26
-Vorschubstange: 1305
-Materialstangenlänge: 3800
-
-Magazindaten elektrisch:
-Magazin-Nr.: 29
-Pos.-Nr.: 2
-Bedientableau: DPT_D001
-Betriebsspannung: 400V
-Schaltplan: 23D2150.9010
-
-Drehmaschinendaten:
-Hersteller: Emco
-Typ: Emcoturn 420
-Drehmaschinen-Nr.: 1029
-        `;
-        resolve(simulatedOcrText.trim());
-      }, 2000);
+    const response = await api.post('/Pdf/extract-text', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
+    
+    return response.data.extractedText;
   };
 
   // Intelligente Daten-Extraktion aus OCR-Text
@@ -172,7 +145,7 @@ Drehmaschinen-Nr.: 1029
     return data;
   };
 
-  // PDF verarbeiten
+  // ECHTE PDF verarbeiten mit Backend-Integration
   const processPdf = async () => {
     if (!uploadedFile) return;
     
@@ -181,18 +154,35 @@ Drehmaschinen-Nr.: 1029
     setErrors([]);
 
     try {
-      // 1. OCR durchführen
+      console.log('🚀 Starte echte PDF-Verarbeitung...');
+      
+      // 1. PDF an Backend senden für OCR
       const text = await extractTextFromPdf(uploadedFile);
       setOcrText(text);
       
-      // 2. Daten extrahieren
+      console.log('✅ OCR-Text erhalten:', text.substring(0, 200) + '...');
+      
+      // 2. Frontend-seitige Datenextraktion (Backup-Lösung)
       const extracted = extractMachineDataFromText(text);
       setExtractedData(extracted);
       
+      console.log('✅ Daten extrahiert:', extracted);
+      
       setStep('review');
-    } catch (error) {
-      console.error('Fehler bei PDF-Verarbeitung:', error);
-      setErrors(['Fehler beim Verarbeiten der PDF-Datei.']);
+    } catch (error: any) {
+      console.error('❌ Fehler bei PDF-Verarbeitung:', error);
+      
+      if (error.response?.status === 400) {
+        setErrors(['PDF konnte nicht verarbeitet werden. Ist es ein gültiger Werkstattauftrag?']);
+      } else if (error.response?.status === 413) {
+        setErrors(['PDF-Datei ist zu groß. Maximum: 100MB']);
+      } else if (error.response?.status === 415) {
+        setErrors(['Nur PDF-Dateien sind erlaubt.']);
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        setErrors(['Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung und ob das Backend läuft.']);
+      } else {
+        setErrors([`Backend-Fehler: ${error.response?.data?.message || error.message}`]);
+      }
       setStep('upload');
     } finally {
       setIsProcessing(false);
@@ -207,7 +197,7 @@ Drehmaschinen-Nr.: 1029
     }));
   };
 
-  // Maschine erstellen (Simulation)
+  // 🎯 KORRIGIERTE Maschine erstellen mit Backend-Integration
   const createMachine = async () => {
     if (!extractedData.machineNumber) {
       setErrors(['Maschinennummer ist erforderlich.']);
@@ -215,38 +205,111 @@ Drehmaschinen-Nr.: 1029
     }
 
     setIsProcessing(true);
+    setErrors([]);
+    
     try {
-      // Simulation einer Maschinen-Erstellung
-      console.log('Erstelle Maschine mit Daten:', {
+      console.log('🚀 Starte Maschinen-Erstellung...');
+      
+      // 1. Maschine erstellen
+      const createData = {
         machineNumber: extractedData.machineNumber,
-        type: extractedData.machineType || 'Unbekannt',
-        installationDate: new Date().toISOString(),
-        magazineProperties: {
-          magazineType: extractedData.magazineType || '',
-          materialBarLength: extractedData.materialBarLength || 0,
-          hasSynchronizationDevice: extractedData.synchronization || false,
-          feedChannel: extractedData.feedChannel || '',
-          feedRod: extractedData.feedRod || ''
+        type: extractedData.machineType || extractedData.magazineType || 'Unbekannt',
+        installationDate: new Date().toISOString().split('T')[0],
+      };
+
+      console.log('📤 Sende Maschinendaten:', createData);
+      
+      const createResponse = await api.post('/Machines', createData);
+      const newMachineId = createResponse.data;
+      
+      console.log('✅ Maschine erfolgreich erstellt, ID:', newMachineId);
+      setCreatedMachineId(newMachineId);
+
+      // 2. Magazin-Eigenschaften setzen (KORRIGIERT: PascalCase für C# Backend)
+      if (extractedData.magazineType || extractedData.materialBarLength || 
+          extractedData.synchronization !== undefined || extractedData.feedChannel || extractedData.feedRod) {
+        
+        console.log('🔧 Setze Magazin-Eigenschaften...');
+        
+        // ✅ KORRIGIERT: PascalCase Property-Namen für C# Backend
+        const magazineData = {
+          MagazineType: extractedData.magazineType || '',
+          MaterialBarLength: extractedData.materialBarLength || 0,
+          HasSynchronizationDevice: extractedData.synchronization || false,
+          FeedChannel: extractedData.feedChannel || '',
+          FeedRod: extractedData.feedRod || ''
+        };
+
+        console.log('📤 Sende Magazin-Daten (PascalCase):', magazineData);
+        console.log('🔍 Datentypen Check:', {
+          MagazineType: typeof magazineData.MagazineType,
+          MaterialBarLength: typeof magazineData.MaterialBarLength,
+          HasSynchronizationDevice: typeof magazineData.HasSynchronizationDevice,
+          FeedChannel: typeof magazineData.FeedChannel,
+          FeedRod: typeof magazineData.FeedRod
+        });
+        
+        try {
+          await api.put(`/Machines/${newMachineId}/magazine`, magazineData);
+          console.log('✅ Magazin-Eigenschaften erfolgreich gesetzt');
+          
+          // Vollständiger Erfolg
+          setStep('complete');
+          setErrors([]);
+          
+        } catch (magazineError: any) {
+          console.error('❌ Magazin-Update fehlgeschlagen:', magazineError);
+          
+          // Detaillierte Fehlerbehandlung
+          let errorMessage = 'Magazin-Eigenschaften konnten nicht gesetzt werden.';
+          
+          if (magazineError.response?.status === 400) {
+            console.error('❌ Validation Error Response:', magazineError.response.data);
+            
+            if (magazineError.response.data?.errors) {
+              const validationErrors = Object.entries(magazineError.response.data.errors)
+                .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                .join('\n');
+              errorMessage = `Validierungsfehler:\n${validationErrors}`;
+            }
+          }
+          
+          // Teilweiser Erfolg - ehrlich kommunizieren
+          setStep('complete');
+          setErrors([
+            '✅ Maschine wurde erfolgreich erstellt!',
+            `⚠️ ${errorMessage}`,
+            'ℹ️ Sie können diese manuell in den Maschineneinstellungen nachtragen.'
+          ]);
         }
-      });
+      } else {
+        // Keine Magazin-Daten zu setzen
+        setStep('complete');
+        setErrors([]);
+      }
 
-      // Simuliere API-Delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Cache invalidieren (wenn verfügbar)
+      // Cache invalidieren
       queryClient.invalidateQueries({ queryKey: ['machines'] });
       
-      setStep('complete');
-      
-      // Nach 3 Sekunden könnte zur neuen Maschine navigiert werden
+      // Navigation nach 5 Sekunden
       setTimeout(() => {
-        console.log('Würde jetzt zur Maschine navigieren');
-        // navigate(`/machines/${machineId}`);
-      }, 3000);
+        navigate(`/machines/${newMachineId}`);
+      }, 5000);
 
     } catch (error: any) {
-      console.error('Fehler beim Erstellen der Maschine:', error);
-      setErrors([`Fehler beim Erstellen: ${error.message}`]);
+      console.error('❌ Fehler beim Erstellen der Maschine:', error);
+      
+      if (error.response?.status === 409) {
+        setErrors(['Eine Maschine mit dieser Nummer existiert bereits.']);
+      } else if (error.response?.status === 400) {
+        setErrors(['Ungültige Maschinendaten. Bitte prüfen Sie die extrahierten Werte.']);
+      } else if (error.response?.status >= 500) {
+        setErrors(['Serverfehler beim Erstellen der Maschine. Bitte versuchen Sie es später erneut.']);
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        setErrors(['Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung.']);
+      } else {
+        setErrors([`Fehler beim Erstellen: ${error.response?.data?.message || error.message}`]);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -259,6 +322,7 @@ Drehmaschinen-Nr.: 1029
     setExtractedData({});
     setStep('upload');
     setErrors([]);
+    setCreatedMachineId('');
   };
 
   return (
@@ -397,12 +461,12 @@ Drehmaschinen-Nr.: 1029
       {step === 'processing' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">🤖 KI analysiert Werkstattauftrag</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">🤖 Backend führt OCR durch</h3>
           <div className="space-y-2 text-gray-600">
-            <p>✅ PDF wird gelesen...</p>
-            <p>🔍 OCR-Texterkennung läuft...</p>
-            <p>🧠 Intelligente Datenextraktion...</p>
-            <p>📋 Maschinendaten werden strukturiert...</p>
+            <p>✅ PDF wird an Backend gesendet...</p>
+            <p>🔍 OCR-Texterkennung läuft auf Server...</p>
+            <p>🧠 Text wird zum Frontend zurückgesendet...</p>
+            <p>📋 Maschinendaten werden extrahiert...</p>
           </div>
         </div>
       )}
@@ -529,13 +593,33 @@ Drehmaschinen-Nr.: 1029
                 )}
               </button>
             </div>
+
+            {/* Fehler/Status Anzeigen */}
+            {errors.length > 0 && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    {errors.map((error, index) => (
+                      <p key={index} className={`${
+                        error.startsWith('✅') ? 'text-green-700' : 
+                        error.startsWith('⚠️') ? 'text-yellow-700' : 
+                        error.startsWith('ℹ️') ? 'text-blue-700' : 'text-red-700'
+                      }`}>
+                        {error}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* OCR-Text Vorschau */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
               <EyeIcon className="h-5 w-5" />
-              <span>OCR-erkannter Text</span>
+              <span>OCR-erkannter Text (vom Backend)</span>
             </h3>
             <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
               <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
@@ -556,6 +640,22 @@ Drehmaschinen-Nr.: 1029
           <p className="text-gray-600 mb-6">
             Die Daten aus dem Werkstattauftrag wurden erfolgreich extrahiert und die Maschine wurde automatisch angelegt.
           </p>
+          
+          {/* Status-Meldungen anzeigen (falls vorhanden) */}
+          {errors.length > 0 && (
+            <div className="bg-yellow-50 rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
+              {errors.map((error, index) => (
+                <p key={index} className={`text-sm mb-1 ${
+                  error.startsWith('✅') ? 'text-green-700' : 
+                  error.startsWith('⚠️') ? 'text-yellow-700' : 
+                  error.startsWith('ℹ️') ? 'text-blue-700' : 'text-red-700'
+                }`}>
+                  {error}
+                </p>
+              ))}
+            </div>
+          )}
+          
           <div className="bg-green-50 rounded-lg p-4 mb-6">
             <h4 className="font-semibold text-green-800 mb-2">Erstellte Daten:</h4>
             <ul className="text-sm text-green-700 space-y-1 text-left max-w-md mx-auto">
@@ -567,7 +667,16 @@ Drehmaschinen-Nr.: 1029
               <li>✅ Vorschubstange: {extractedData.feedRod}</li>
             </ul>
           </div>
-          <p className="text-sm text-gray-500">Sie werden automatisch zur neuen Maschine weitergeleitet...</p>
+          
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500">Sie werden automatisch zur neuen Maschine weitergeleitet...</p>
+            <button
+              onClick={() => navigate(`/machines/${createdMachineId}`)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all"
+            >
+              Sofort zur Maschine
+            </button>
+          </div>
         </div>
       )}
     </div>

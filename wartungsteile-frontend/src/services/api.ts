@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // API-Basiskonfiguration - über Vite-Proxy
-export const API_BASE_URL = '/api'; // Proxy zu https://localhost:7024/api
+export const API_BASE_URL = 'https://localhost:7024/api'; // Direkte Backend-URL
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
