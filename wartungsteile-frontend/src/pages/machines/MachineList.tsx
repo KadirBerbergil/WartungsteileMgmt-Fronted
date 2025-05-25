@@ -116,6 +116,14 @@ const MachineList = () => {
             </div>
           </Link>
           
+          {/* Enterprise Multi-Upload Button */}
+          <Link 
+            to="/machines/enterprise-upload"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg flex items-center space-x-2"
+          >
+            <span>🏭 Enterprise Multi-Upload</span>
+          </Link>
+          
           {/* Manuell erstellen Button */}
           <button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg border-2 border-transparent hover:border-blue-300">
             <PlusIcon className="h-5 w-5" />
@@ -328,6 +336,12 @@ const MachineList = () => {
                   >
                     <SparklesIcon className="h-4 w-4" />
                     <span>PDF hochladen</span>
+                  </Link>
+                  <Link 
+                    to="/machines/enterprise-upload"
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors space-x-2"
+                  >
+                    <span>🏭 Enterprise Multi-Upload</span>
                   </Link>
                   <button className="inline-flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors space-x-2">
                     <PlusIcon className="h-4 w-4" />

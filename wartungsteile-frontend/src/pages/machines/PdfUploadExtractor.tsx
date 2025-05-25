@@ -1,4 +1,4 @@
-// src/pages/machines/PdfUploadExtractor.tsx - KORRIGIERTE Version für Backend-Integration
+// src/pages/machines/EnterprisePdfUpload.tsx - ENTERPRISE MULTI-MACHINE SYSTEM
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -12,53 +12,68 @@ import {
   SparklesIcon,
   CogIcon,
   XMarkIcon,
-  ArrowPathIcon
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
-// TypeScript Interface für extrahierte Daten
+// TypeScript Interfaces für Enterprise System
 interface ExtractedMachineData {
-  // Kundendaten
-  customerProcess?: string;
-  customerNumber?: string;
-  customerName?: string;
-  
-  // Maschinendaten
-  machineNumber?: string;
-  articleNumber?: string;
-  magazineType?: string;
-  
-  // Technische Details
-  synchronization?: boolean;
-  feedChannel?: string;
-  feedRod?: string;
-  materialBarLength?: number;
-  
-  // Elektrische Daten
-  magazineElectricalNumber?: string;
-  controlPanel?: string;
-  operatingVoltage?: string;
-  
-  // Drehmaschine
-  manufacturer?: string;
-  machineType?: string;
-  latheNumber?: string;
-  
-  // Meta
-  productionWeek?: string;
-  colors?: string;
+  machineNumber: string;
+  magazineType: string;
+  materialBarLength: number;
+  hasSynchronizationDevice: boolean;
+  feedChannel: string;
+  feedRod: string;
+  customerName: string;
+  customerNumber: string;
+  articleNumber: string;
+  isValid: boolean;
+  validationErrors: string[];
+  alreadyExists: boolean;
 }
 
-const PdfUploadExtractor = () => {
+interface MultiMachineExtractionResult {
+  success: boolean;
+  originalText: string;
+  extractedMachines: ExtractedMachineData[];
+  totalMachinesFound: number;
+  validMachines: number;
+  duplicateMachines: number;
+  ocrEngine: string;
+  metadata: Record<string, any>;
+}
+
+interface BatchCreateResult {
+  success: boolean;
+  totalMachines: number;
+  successfullyCreated: number;
+  failed: number;
+  results: BatchCreateItem[];
+  summary: string;
+  processingTime: number;
+}
+
+interface BatchCreateItem {
+  machineNumber: string;
+  success: boolean;
+  machineId: string;
+  error: string;
+  processedAt: string;
+}
+
+const EnterprisePdfUpload = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [ocrText, setOcrText] = useState<string>('');
-  const [extractedData, setExtractedData] = useState<ExtractedMachineData>({});
-  const [step, setStep] = useState<'upload' | 'processing' | 'review' | 'complete'>('upload');
+  const [extractionResult, setExtractionResult] = useState<MultiMachineExtractionResult | null>(null);
+  const [selectedMachines, setSelectedMachines] = useState<Set<string>>(new Set());
+  const [step, setStep] = useState<'upload' | 'processing' | 'review' | 'batch-creating' | 'complete'>('upload');
   const [errors, setErrors] = useState<string[]>([]);
-  const [createdMachineId, setCreatedMachineId] = useState<string>('');
+  const [batchResult, setBatchResult] = useState<BatchCreateResult | null>(null);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; status: string }>({ current: 0, total: 0, status: '' });
 
   // Drag & Drop Handler
   const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -85,68 +100,8 @@ const PdfUploadExtractor = () => {
     }
   };
 
-  // ECHTE PDF-Text-Extraktion via Backend
-  const extractTextFromPdf = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('pdfFile', file);
-    
-    const response = await api.post('/Pdf/extract-text', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    return response.data.extractedText;
-  };
-
-  // Intelligente Daten-Extraktion aus OCR-Text
-  const extractMachineDataFromText = (text: string): ExtractedMachineData => {
-    const data: ExtractedMachineData = {};
-    
-    // Regex-Pattern für verschiedene Datenfelder
-    const patterns = {
-      customerProcess: /Kundenvorgang[:\s]*(\d+)/i,
-      customerNumber: /Kundennr\.?[:\s]*(\d+)/i,
-      customerName: /Kunde[:\s]*([A-Z]+)/i,
-      machineNumber: /Maschinen-Nr[:\s]*([A-Z0-9-]+)/i,
-      articleNumber: /Artikel-Nr[:\s]*([A-Z0-9-]+)/i,
-      magazineType: /Magazin-Typ[:\s]*([^\n\r]+)/i,
-      feedChannel: /Zuführkanal[^\n\r]*[:\s]*([A-Z0-9\s]+)/i,
-      feedRod: /Vorschubstange[:\s]*(\d+)/i,
-      materialBarLength: /Materialstangenlänge[:\s]*(\d+)/i,
-      magazineElectricalNumber: /Magazin-Nr\.?[:\s]*(\d+)/i,
-      controlPanel: /Bedientableau[:\s]*([A-Z0-9_]+)/i,
-      operatingVoltage: /Betriebsspannung[:\s]*(\d+V)/i,
-      manufacturer: /Hersteller[:\s]*([A-Za-z]+)/i,
-      machineType: /Typ[:\s]*([A-Za-z0-9\s]+)/i,
-      latheNumber: /Drehmaschinen-Nr\.?[:\s]*(\d+)/i,
-      productionWeek: /Produktions-Woche[:\s]*([0-9\/]+)/i
-    };
-
-    // Synchroneinrichtung spezielle Behandlung
-    const syncMatch = text.match(/Synchroneinrichtung[:\s]*(ja|nein)/i);
-    if (syncMatch) {
-      data.synchronization = syncMatch[1].toLowerCase() === 'ja';
-    }
-
-    // Alle anderen Pattern durchgehen
-    Object.entries(patterns).forEach(([key, pattern]) => {
-      const match = text.match(pattern);
-      if (match) {
-        const value = match[1].trim();
-        if (key === 'materialBarLength' || key === 'feedRod' || key === 'latheNumber') {
-          (data as any)[key] = parseInt(value);
-        } else {
-          (data as any)[key] = value;
-        }
-      }
-    });
-
-    return data;
-  };
-
-  // ECHTE PDF verarbeiten mit Backend-Integration
-  const processPdf = async () => {
+  // 🔥 ENTERPRISE MULTI-MACHINE-EXTRAKTION
+  const processEnterprisePdf = async () => {
     if (!uploadedFile) return;
     
     setIsProcessing(true);
@@ -154,34 +109,40 @@ const PdfUploadExtractor = () => {
     setErrors([]);
 
     try {
-      console.log('🚀 Starte echte PDF-Verarbeitung...');
+      console.log('🚀 Starte Enterprise Multi-Machine-Extraktion...');
       
-      // 1. PDF an Backend senden für OCR
-      const text = await extractTextFromPdf(uploadedFile);
-      setOcrText(text);
+      const formData = new FormData();
+      formData.append('pdfFile', uploadedFile);
       
-      console.log('✅ OCR-Text erhalten:', text.substring(0, 200) + '...');
+      const response = await api.post('/Pdf/extract-machines', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       
-      // 2. Frontend-seitige Datenextraktion (Backup-Lösung)
-      const extracted = extractMachineDataFromText(text);
-      setExtractedData(extracted);
+      const result: MultiMachineExtractionResult = response.data;
+      setExtractionResult(result);
       
-      console.log('✅ Daten extrahiert:', extracted);
+      console.log('✅ Multi-Machine-Extraktion erfolgreich:', result);
       
-      setStep('review');
-    } catch (error: any) {
-      console.error('❌ Fehler bei PDF-Verarbeitung:', error);
-      
-      if (error.response?.status === 400) {
-        setErrors(['PDF konnte nicht verarbeitet werden. Ist es ein gültiger Werkstattauftrag?']);
-      } else if (error.response?.status === 413) {
-        setErrors(['PDF-Datei ist zu groß. Maximum: 100MB']);
-      } else if (error.response?.status === 415) {
-        setErrors(['Nur PDF-Dateien sind erlaubt.']);
-      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-        setErrors(['Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung und ob das Backend läuft.']);
+      if (result.success && result.extractedMachines.length > 0) {
+        // Alle validen Maschinen vorauswählen
+        const validMachineNumbers = result.extractedMachines
+          .filter(m => m.isValid && !m.alreadyExists)
+          .map(m => m.machineNumber);
+        setSelectedMachines(new Set(validMachineNumbers));
+        
+        setStep('review');
       } else {
-        setErrors([`Backend-Fehler: ${error.response?.data?.message || error.message}`]);
+        setErrors(['Keine Maschinen in der PDF gefunden.']);
+        setStep('upload');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Fehler bei Multi-Machine-Extraktion:', error);
+      
+      if (error.response?.status >= 400 && error.response?.status < 500) {
+        setErrors([`Verarbeitungsfehler: ${error.response?.data?.metadata?.error || error.message}`]);
+      } else {
+        setErrors(['Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung.']);
       }
       setStep('upload');
     } finally {
@@ -189,127 +150,135 @@ const PdfUploadExtractor = () => {
     }
   };
 
-  // Formular-Daten aktualisieren
-  const updateExtractedData = (field: keyof ExtractedMachineData, value: any) => {
-    setExtractedData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // Machine Selection Handlers
+  const toggleMachineSelection = (machineNumber: string) => {
+    const newSelection = new Set(selectedMachines);
+    if (newSelection.has(machineNumber)) {
+      newSelection.delete(machineNumber);
+    } else {
+      newSelection.add(machineNumber);
+    }
+    setSelectedMachines(newSelection);
   };
 
-  // 🎯 KORRIGIERTE Maschine erstellen mit Backend-Integration
-  const createMachine = async () => {
-    if (!extractedData.machineNumber) {
-      setErrors(['Maschinennummer ist erforderlich.']);
-      return;
-    }
+  const selectAllValidMachines = () => {
+    if (!extractionResult) return;
+    const validMachineNumbers = extractionResult.extractedMachines
+      .filter(m => m.isValid && !m.alreadyExists)
+      .map(m => m.machineNumber);
+    setSelectedMachines(new Set(validMachineNumbers));
+  };
 
+  const clearAllSelections = () => {
+    setSelectedMachines(new Set());
+  };
+
+  // 🔥 ENTERPRISE BATCH-CREATION
+  const createSelectedMachines = async () => {
+    if (!extractionResult || selectedMachines.size === 0) return;
+
+    setStep('batch-creating');
     setIsProcessing(true);
-    setErrors([]);
-    
+    setBatchProgress({ current: 0, total: selectedMachines.size, status: 'Starte Batch-Erstellung...' });
+
     try {
-      console.log('🚀 Starte Maschinen-Erstellung...');
-      
-      // 1. Maschine erstellen
-      const createData = {
-        machineNumber: extractedData.machineNumber,
-        type: extractedData.machineType || extractedData.magazineType || 'Unbekannt',
-        installationDate: new Date().toISOString().split('T')[0],
+      const machinesToCreate = extractionResult.extractedMachines
+        .filter(m => selectedMachines.has(m.machineNumber));
+
+      console.log('🚀 Starte Batch-Erstellung für', machinesToCreate.length, 'Maschinen');
+
+      // Simuliere schrittweise Erstellung (in echter Implementierung würde das via WebSocket/SignalR laufen)
+      let successCount = 0;
+      let failCount = 0;
+      const results: BatchCreateItem[] = [];
+
+      for (let i = 0; i < machinesToCreate.length; i++) {
+        const machine = machinesToCreate[i];
+        
+        setBatchProgress({ 
+          current: i + 1, 
+          total: machinesToCreate.length, 
+          status: `Erstelle Maschine ${machine.machineNumber}...` 
+        });
+
+        try {
+          // 1. Maschine erstellen
+          const createData = {
+            machineNumber: machine.machineNumber,
+            type: machine.magazineType || 'Unbekannt',
+            installationDate: new Date().toISOString().split('T')[0],
+          };
+
+          const createResponse = await api.post('/Machines', createData);
+          const newMachineId = createResponse.data;
+
+          // 2. Magazin-Eigenschaften setzen
+          if (machine.magazineType || machine.materialBarLength || machine.feedChannel) {
+            const magazineData = {
+              MagazineType: machine.magazineType || '',
+              MaterialBarLength: machine.materialBarLength || 0,
+              HasSynchronizationDevice: machine.hasSynchronizationDevice || false,
+              FeedChannel: machine.feedChannel || '',
+              FeedRod: machine.feedRod || ''
+            };
+
+            await api.put(`/Machines/${newMachineId}/magazine`, magazineData);
+          }
+
+          results.push({
+            machineNumber: machine.machineNumber,
+            success: true,
+            machineId: newMachineId,
+            error: '',
+            processedAt: new Date().toISOString()
+          });
+
+          successCount++;
+          console.log('✅ Maschine', machine.machineNumber, 'erfolgreich erstellt');
+
+        } catch (error: any) {
+          console.error('❌ Fehler bei Maschine', machine.machineNumber, ':', error);
+          
+          results.push({
+            machineNumber: machine.machineNumber,
+            success: false,
+            machineId: '',
+            error: error.response?.data?.message || error.message,
+            processedAt: new Date().toISOString()
+          });
+
+          failCount++;
+        }
+
+        // Kleine Pause zwischen Requests um Server nicht zu überlasten
+        if (i < machinesToCreate.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+
+      // Batch-Ergebnis zusammenstellen
+      const batchResult: BatchCreateResult = {
+        success: successCount > 0,
+        totalMachines: machinesToCreate.length,
+        successfullyCreated: successCount,
+        failed: failCount,
+        results: results,
+        summary: `${successCount} Maschinen erfolgreich erstellt, ${failCount} Fehler`,
+        processingTime: 0 // Wird vom Backend berechnet
       };
 
-      console.log('📤 Sende Maschinendaten:', createData);
-      
-      const createResponse = await api.post('/Machines', createData);
-      const newMachineId = createResponse.data;
-      
-      console.log('✅ Maschine erfolgreich erstellt, ID:', newMachineId);
-      setCreatedMachineId(newMachineId);
-
-      // 2. Magazin-Eigenschaften setzen (KORRIGIERT: PascalCase für C# Backend)
-      if (extractedData.magazineType || extractedData.materialBarLength || 
-          extractedData.synchronization !== undefined || extractedData.feedChannel || extractedData.feedRod) {
-        
-        console.log('🔧 Setze Magazin-Eigenschaften...');
-        
-        // ✅ KORRIGIERT: PascalCase Property-Namen für C# Backend
-        const magazineData = {
-          MagazineType: extractedData.magazineType || '',
-          MaterialBarLength: extractedData.materialBarLength || 0,
-          HasSynchronizationDevice: extractedData.synchronization || false,
-          FeedChannel: extractedData.feedChannel || '',
-          FeedRod: extractedData.feedRod || ''
-        };
-
-        console.log('📤 Sende Magazin-Daten (PascalCase):', magazineData);
-        console.log('🔍 Datentypen Check:', {
-          MagazineType: typeof magazineData.MagazineType,
-          MaterialBarLength: typeof magazineData.MaterialBarLength,
-          HasSynchronizationDevice: typeof magazineData.HasSynchronizationDevice,
-          FeedChannel: typeof magazineData.FeedChannel,
-          FeedRod: typeof magazineData.FeedRod
-        });
-        
-        try {
-          await api.put(`/Machines/${newMachineId}/magazine`, magazineData);
-          console.log('✅ Magazin-Eigenschaften erfolgreich gesetzt');
-          
-          // Vollständiger Erfolg
-          setStep('complete');
-          setErrors([]);
-          
-        } catch (magazineError: any) {
-          console.error('❌ Magazin-Update fehlgeschlagen:', magazineError);
-          
-          // Detaillierte Fehlerbehandlung
-          let errorMessage = 'Magazin-Eigenschaften konnten nicht gesetzt werden.';
-          
-          if (magazineError.response?.status === 400) {
-            console.error('❌ Validation Error Response:', magazineError.response.data);
-            
-            if (magazineError.response.data?.errors) {
-              const validationErrors = Object.entries(magazineError.response.data.errors)
-                .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-                .join('\n');
-              errorMessage = `Validierungsfehler:\n${validationErrors}`;
-            }
-          }
-          
-          // Teilweiser Erfolg - ehrlich kommunizieren
-          setStep('complete');
-          setErrors([
-            '✅ Maschine wurde erfolgreich erstellt!',
-            `⚠️ ${errorMessage}`,
-            'ℹ️ Sie können diese manuell in den Maschineneinstellungen nachtragen.'
-          ]);
-        }
-      } else {
-        // Keine Magazin-Daten zu setzen
-        setStep('complete');
-        setErrors([]);
-      }
+      setBatchResult(batchResult);
+      setStep('complete');
 
       // Cache invalidieren
       queryClient.invalidateQueries({ queryKey: ['machines'] });
-      
-      // Navigation nach 5 Sekunden
-      setTimeout(() => {
-        navigate(`/machines/${newMachineId}`);
-      }, 5000);
+
+      console.log('🏆 Batch-Erstellung abgeschlossen:', batchResult);
 
     } catch (error: any) {
-      console.error('❌ Fehler beim Erstellen der Maschine:', error);
-      
-      if (error.response?.status === 409) {
-        setErrors(['Eine Maschine mit dieser Nummer existiert bereits.']);
-      } else if (error.response?.status === 400) {
-        setErrors(['Ungültige Maschinendaten. Bitte prüfen Sie die extrahierten Werte.']);
-      } else if (error.response?.status >= 500) {
-        setErrors(['Serverfehler beim Erstellen der Maschine. Bitte versuchen Sie es später erneut.']);
-      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-        setErrors(['Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung.']);
-      } else {
-        setErrors([`Fehler beim Erstellen: ${error.response?.data?.message || error.message}`]);
-      }
+      console.error('💥 Kritischer Fehler bei Batch-Erstellung:', error);
+      setErrors([`Batch-Erstellung fehlgeschlagen: ${error.message}`]);
+      setStep('review');
     } finally {
       setIsProcessing(false);
     }
@@ -318,38 +287,39 @@ const PdfUploadExtractor = () => {
   // Reset
   const reset = () => {
     setUploadedFile(null);
-    setOcrText('');
-    setExtractedData({});
+    setExtractionResult(null);
+    setSelectedMachines(new Set());
+    setBatchResult(null);
     setStep('upload');
     setErrors([]);
-    setCreatedMachineId('');
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      {/* Header */}
+    <div className="max-w-7xl mx-auto p-6 space-y-8">
+      {/* Enterprise Header */}
       <div className="text-center">
         <div className="flex items-center justify-center space-x-3 mb-4">
           <div className="p-3 bg-blue-100 rounded-xl">
             <SparklesIcon className="h-8 w-8 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">🤖 Intelligente PDF-Extraktion</h1>
-            <p className="text-gray-600">Werkstattauftrag hochladen → Automatische Maschinenerstellung</p>
+            <h1 className="text-3xl font-bold text-gray-800">🏭 Enterprise Multi-Machine-Extraktion</h1>
+            <p className="text-gray-600">Bis zu 50+ Werkstattaufträge automatisch verarbeiten</p>
           </div>
         </div>
         
-        {/* Fortschritts-Indikator */}
+        {/* Progress Indicator */}
         <div className="flex items-center justify-center space-x-8 mt-8">
           {[
             { id: 'upload', name: 'Upload', icon: CloudArrowUpIcon },
-            { id: 'processing', name: 'OCR-Verarbeitung', icon: SparklesIcon },
-            { id: 'review', name: 'Daten prüfen', icon: EyeIcon },
+            { id: 'processing', name: 'KI-Verarbeitung', icon: SparklesIcon },
+            { id: 'review', name: 'Auswahl', icon: EyeIcon },
+            { id: 'batch-creating', name: 'Batch-Erstellung', icon: CogIcon },
             { id: 'complete', name: 'Fertig', icon: CheckIcon }
           ].map((stepItem, index) => {
             const StepIcon = stepItem.icon;
             const isActive = step === stepItem.id;
-            const isCompleted = ['upload', 'processing', 'review', 'complete'].indexOf(step) > index;
+            const isCompleted = ['upload', 'processing', 'review', 'batch-creating', 'complete'].indexOf(step) > index;
             
             return (
               <div key={stepItem.id} className="flex items-center">
@@ -368,7 +338,7 @@ const PdfUploadExtractor = () => {
                   </div>
                   <span className="font-medium text-sm">{stepItem.name}</span>
                 </div>
-                {index < 3 && (
+                {index < 4 && (
                   <div className={`mx-4 h-px w-12 ${
                     isCompleted ? 'bg-green-600' : 'bg-gray-300'
                   }`} />
@@ -379,7 +349,7 @@ const PdfUploadExtractor = () => {
         </div>
       </div>
 
-      {/* Upload-Bereich */}
+      {/* Upload Phase */}
       {step === 'upload' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div
@@ -389,10 +359,10 @@ const PdfUploadExtractor = () => {
           >
             <CloudArrowUpIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Werkstattauftrag (PDF) hier ablegen
+              Multi-Werkstattauftrag PDF hier ablegen
             </h3>
             <p className="text-gray-500 mb-6">
-              Oder klicken Sie zum Auswählen einer Datei
+              Unterstützt PDFs mit 1-50+ Werkstattaufträgen
             </p>
             
             <input
@@ -425,11 +395,11 @@ const PdfUploadExtractor = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={processPdf}
+                    onClick={processEnterprisePdf}
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all flex items-center space-x-2"
                   >
                     <SparklesIcon className="h-4 w-4" />
-                    <span>KI-Extraktion starten</span>
+                    <span>Multi-Machine-Extraktion starten</span>
                   </button>
                   <button
                     onClick={() => setUploadedFile(null)}
@@ -457,224 +427,263 @@ const PdfUploadExtractor = () => {
         </div>
       )}
 
-      {/* Verarbeitungs-Anzeige */}
+      {/* Processing Phase */}
       {step === 'processing' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">🤖 Backend führt OCR durch</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">🤖 Enterprise KI-Verarbeitung läuft</h3>
           <div className="space-y-2 text-gray-600">
-            <p>✅ PDF wird an Backend gesendet...</p>
-            <p>🔍 OCR-Texterkennung läuft auf Server...</p>
-            <p>🧠 Text wird zum Frontend zurückgesendet...</p>
-            <p>📋 Maschinendaten werden extrahiert...</p>
+            <p>✅ PDF wird an Azure Document Intelligence gesendet...</p>
+            <p>🔍 Multi-Page OCR-Texterkennung läuft...</p>
+            <p>🧠 Text-Segmentierung nach Werkstattaufträgen...</p>
+            <p>📋 Automatische Datenextraktion für alle Maschinen...</p>
+            <p>🔄 Validierung und Deduplication...</p>
           </div>
         </div>
       )}
 
-      {/* Daten überprüfen */}
-      {step === 'review' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Extrahierte Daten bearbeiten */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center space-x-2">
-              <CogIcon className="h-5 w-5" />
-              <span>Extrahierte Maschinendaten</span>
-            </h3>
-            
-            <div className="space-y-4">
-              {/* Maschinennummer */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Maschinennummer *
-                </label>
-                <input
-                  type="text"
-                  value={extractedData.machineNumber || ''}
-                  onChange={(e) => updateExtractedData('machineNumber', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="z.B. 39-000561"
-                />
+      {/* Multi-Machine Review Phase */}
+      {step === 'review' && extractionResult && (
+        <div className="space-y-6">
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <InformationCircleIcon className="h-5 w-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Gefunden</span>
               </div>
-
-              {/* Magazin-Typ */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Magazin-Typ
-                </label>
-                <input
-                  type="text"
-                  value={extractedData.magazineType || ''}
-                  onChange={(e) => updateExtractedData('magazineType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="z.B. turbo ET 420"
-                />
+              <p className="text-2xl font-bold text-blue-900">{extractionResult.totalMachinesFound}</p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-medium text-green-900">Valide</span>
               </div>
-
-              {/* Materialstangenlänge */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Materialstangenlänge (mm)
-                </label>
-                <input
-                  type="number"
-                  value={extractedData.materialBarLength || ''}
-                  onChange={(e) => updateExtractedData('materialBarLength', parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="z.B. 3800"
-                />
+              <p className="text-2xl font-bold text-green-900">{extractionResult.validMachines}</p>
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <ExclamationCircleIcon className="h-5 w-5 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-900">Duplikate</span>
               </div>
+              <p className="text-2xl font-bold text-yellow-900">{extractionResult.duplicateMachines}</p>
+            </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <CheckIcon className="h-5 w-5 text-purple-600" />
+                <span className="text-sm font-medium text-purple-900">Ausgewählt</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-900">{selectedMachines.size}</p>
+            </div>
+          </div>
 
-              {/* Synchroneinrichtung */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Synchroneinrichtung
-                </label>
-                <select
-                  value={extractedData.synchronization ? 'true' : 'false'}
-                  onChange={(e) => updateExtractedData('synchronization', e.target.value === 'true')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          {/* Selection Controls */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={selectAllValidMachines}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-all"
                 >
-                  <option value="false">Nein</option>
-                  <option value="true">Ja</option>
-                </select>
+                  Alle validen auswählen
+                </button>
+                <button
+                  onClick={clearAllSelections}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-all"
+                >
+                  Auswahl löschen
+                </button>
               </div>
-
-              {/* Zuführkanal */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Zuführkanal
-                </label>
-                <input
-                  type="text"
-                  value={extractedData.feedChannel || ''}
-                  onChange={(e) => updateExtractedData('feedChannel', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="z.B. D 26"
-                />
-              </div>
-
-              {/* Vorschubstange */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vorschubstange
-                </label>
-                <input
-                  type="text"
-                  value={extractedData.feedRod || ''}
-                  onChange={(e) => updateExtractedData('feedRod', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="z.B. 1305"
-                />
+              <div className="text-sm text-gray-600">
+                {selectedMachines.size} von {extractionResult.validMachines} ausgewählt
               </div>
             </div>
-
-            <div className="mt-8 flex space-x-4">
-              <button
-                onClick={reset}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
-              >
-                Von vorn beginnen
-              </button>
-              <button
-                onClick={createMachine}
-                disabled={!extractedData.machineNumber || isProcessing}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-all flex items-center justify-center space-x-2"
-              >
-                {isProcessing ? (
-                  <>
-                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                    <span>Wird erstellt...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon className="h-4 w-4" />
-                    <span>Maschine erstellen</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Fehler/Status Anzeigen */}
-            {errors.length > 0 && (
-              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-start space-x-3">
-                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    {errors.map((error, index) => (
-                      <p key={index} className={`${
-                        error.startsWith('✅') ? 'text-green-700' : 
-                        error.startsWith('⚠️') ? 'text-yellow-700' : 
-                        error.startsWith('ℹ️') ? 'text-blue-700' : 'text-red-700'
-                      }`}>
-                        {error}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* OCR-Text Vorschau */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
-              <EyeIcon className="h-5 w-5" />
-              <span>OCR-erkannter Text (vom Backend)</span>
-            </h3>
-            <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
-                {ocrText || 'Kein Text erkannt'}
-              </pre>
+          {/* Machine List */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Extrahierte Maschinen</h3>
+            </div>
+            
+            <div className="max-h-96 overflow-y-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Auswahl
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Maschinennummer
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Typ
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Materialstange
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {extractionResult.extractedMachines.map((machine, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedMachines.has(machine.machineNumber)}
+                          onChange={() => toggleMachineSelection(machine.machineNumber)}
+                          disabled={!machine.isValid || machine.alreadyExists}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {machine.machineNumber}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {machine.magazineType || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {machine.materialBarLength ? `${machine.materialBarLength} mm` : '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        {machine.isValid ? (
+                          machine.alreadyExists ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Existiert bereits
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Bereit
+                            </span>
+                          )
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Ungültig
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={reset}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-all"
+            >
+              Von vorn beginnen
+            </button>
+            <button
+              onClick={createSelectedMachines}
+              disabled={selectedMachines.size === 0 || isProcessing}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-all flex items-center space-x-2"
+            >
+              <SparklesIcon className="h-5 w-5" />
+              <span>{selectedMachines.size} Maschinen erstellen</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Creating Phase */}
+      {step === 'batch-creating' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="text-center mb-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">🏭 Batch-Erstellung läuft</h3>
+            <p className="text-gray-600">{batchProgress.status}</p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mb-6">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Fortschritt</span>
+              <span>{batchProgress.current} von {batchProgress.total}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div 
+                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${batchProgress.total > 0 ? (batchProgress.current / batchProgress.total) * 100 : 0}%` }}
+              ></div>
+            </div>
+            <div className="text-center text-sm text-gray-500 mt-2">
+              {batchProgress.total > 0 ? Math.round((batchProgress.current / batchProgress.total) * 100) : 0}% abgeschlossen
             </div>
           </div>
         </div>
       )}
 
-      {/* Erfolgsmeldung */}
-      {step === 'complete' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckIcon className="h-10 w-10 text-green-600" />
+      {/* Complete Phase */}
+      {step === 'complete' && batchResult && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckIcon className="h-10 w-10 text-green-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">🎉 Batch-Erstellung abgeschlossen!</h3>
+            <p className="text-gray-600 mb-6">{batchResult.summary}</p>
           </div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">🎉 Maschine erfolgreich erstellt!</h3>
-          <p className="text-gray-600 mb-6">
-            Die Daten aus dem Werkstattauftrag wurden erfolgreich extrahiert und die Maschine wurde automatisch angelegt.
-          </p>
-          
-          {/* Status-Meldungen anzeigen (falls vorhanden) */}
-          {errors.length > 0 && (
-            <div className="bg-yellow-50 rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
-              {errors.map((error, index) => (
-                <p key={index} className={`text-sm mb-1 ${
-                  error.startsWith('✅') ? 'text-green-700' : 
-                  error.startsWith('⚠️') ? 'text-yellow-700' : 
-                  error.startsWith('ℹ️') ? 'text-blue-700' : 'text-red-700'
-                }`}>
-                  {error}
-                </p>
-              ))}
+
+          {/* Results Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-900">{batchResult.successfullyCreated}</div>
+              <div className="text-sm text-green-700">Erfolgreich erstellt</div>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-red-900">{batchResult.failed}</div>
+              <div className="text-sm text-red-700">Fehlgeschlagen</div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-blue-900">{batchResult.totalMachines}</div>
+              <div className="text-sm text-blue-700">Gesamt verarbeitet</div>
+            </div>
+          </div>
+
+          {/* Detailed Results */}
+          {batchResult.results.length > 0 && (
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">Detaillierte Ergebnisse</h4>
+              <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                {batchResult.results.map((result, index) => (
+                  <div key={index} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-b-0">
+                    <div className="flex items-center space-x-3">
+                      {result.success ? (
+                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <ExclamationCircleIcon className="h-5 w-5 text-red-600" />
+                      )}
+                      <span className="font-medium">{result.machineNumber}</span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {result.success ? 'Erfolgreich erstellt' : result.error}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          
-          <div className="bg-green-50 rounded-lg p-4 mb-6">
-            <h4 className="font-semibold text-green-800 mb-2">Erstellte Daten:</h4>
-            <ul className="text-sm text-green-700 space-y-1 text-left max-w-md mx-auto">
-              <li>✅ Maschinennummer: {extractedData.machineNumber}</li>
-              <li>✅ Magazin-Typ: {extractedData.magazineType}</li>
-              <li>✅ Materialstangenlänge: {extractedData.materialBarLength}mm</li>
-              <li>✅ Synchroneinrichtung: {extractedData.synchronization ? 'Ja' : 'Nein'}</li>
-              <li>✅ Zuführkanal: {extractedData.feedChannel}</li>
-              <li>✅ Vorschubstange: {extractedData.feedRod}</li>
-            </ul>
-          </div>
-          
-          <div className="space-y-3">
-            <p className="text-sm text-gray-500">Sie werden automatisch zur neuen Maschine weitergeleitet...</p>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-center space-x-4">
             <button
-              onClick={() => navigate(`/machines/${createdMachineId}`)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all"
+              onClick={() => navigate('/machines')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all"
             >
-              Sofort zur Maschine
+              Zur Maschinenliste
+            </button>
+            <button
+              onClick={reset}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-all"
+            >
+              Neue PDF verarbeiten
             </button>
           </div>
         </div>
@@ -683,4 +692,4 @@ const PdfUploadExtractor = () => {
   );
 };
 
-export default PdfUploadExtractor;
+export default EnterprisePdfUpload;

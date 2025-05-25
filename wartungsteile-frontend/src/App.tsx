@@ -11,6 +11,7 @@ import MaintenancePartsList from './pages/parts/MaintenancePartsList'
 import MaintenancePartDetail from './pages/parts/MaintenancePartDetail'
 import MaintenancePartEdit from './pages/parts/MaintenancePartEdit'
 import MaintenancePartCreate from './pages/parts/MaintenancePartCreate'
+// import EnterprisePdfUpload from './pages/machines/EnterprisePdfUpload'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="parts/new" element={<MaintenancePartCreate />} />
         <Route path="parts/:id" element={<MaintenancePartDetail />} />
         <Route path="parts/:id/edit" element={<MaintenancePartEdit />} />
+        {/* <Route path="machines/enterprise-upload" element={<EnterprisePdfUpload />} /> */}
       </Route>
     </Routes>
   )
