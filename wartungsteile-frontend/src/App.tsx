@@ -1,4 +1,4 @@
-// src/App.tsx - Mit PDF Upload Route hinzugefügt
+// src/App.tsx - Mit korrigierten PDF Upload Routen
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/dashboard/Dashboard'
@@ -6,12 +6,14 @@ import MachineList from './pages/machines/MachineList'
 import MachineDetail from './pages/machines/MachineDetail'
 import MachineMaintenancePartsList from './pages/machines/MachineMaintenancePartsList'
 import MachineMaintenanceWorkflow from './pages/machines/MachineMaintenanceWorkflow'
-import PdfUploadExtractor from './pages/machines/PdfUploadExtractor'
+
+// 🔥 EINHEITLICHE PDF-UPLOAD IMPORTS
+import PdfUploadExtractor from './pages/machines/PdfUploadExtractor'    // ENTERPRISE Multi-Upload für alles
+
 import MaintenancePartsList from './pages/parts/MaintenancePartsList'
 import MaintenancePartDetail from './pages/parts/MaintenancePartDetail'
 import MaintenancePartEdit from './pages/parts/MaintenancePartEdit'
 import MaintenancePartCreate from './pages/parts/MaintenancePartCreate'
-// import EnterprisePdfUpload from './pages/machines/EnterprisePdfUpload'
 
 function App() {
   return (
@@ -22,13 +24,14 @@ function App() {
         <Route path="machines/:id" element={<MachineDetail />} />
         <Route path="machines/:id/parts" element={<MachineMaintenancePartsList />} />
         <Route path="machines/:id/maintenance" element={<MachineMaintenanceWorkflow />} />
-        {/* ✅ NEUE ROUTE: PDF Upload für intelligente Maschinenerstellung */}
-        <Route path="machines/upload" element={<PdfUploadExtractor />} />
+        
+        {/* 🔥 EINHEITLICHE PDF-UPLOAD ROUTE */}
+        <Route path="machines/upload" element={<PdfUploadExtractor />} />                  {/* ENTERPRISE Multi-Upload für alles */}
+        
         <Route path="parts" element={<MaintenancePartsList />} />
         <Route path="parts/new" element={<MaintenancePartCreate />} />
         <Route path="parts/:id" element={<MaintenancePartDetail />} />
         <Route path="parts/:id/edit" element={<MaintenancePartEdit />} />
-        {/* <Route path="machines/enterprise-upload" element={<EnterprisePdfUpload />} /> */}
       </Route>
     </Routes>
   )
