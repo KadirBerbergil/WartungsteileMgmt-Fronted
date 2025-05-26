@@ -1,4 +1,4 @@
-// src/components/MagazinePropertiesEditor.tsx - TypeScript Fehler behoben
+// src/components/MagazinePropertiesEditor.tsx - Clean & Professional Design
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { machineService } from '../services';
@@ -28,31 +28,6 @@ interface MagazinePropertiesEditorProps {
   onUpdate?: (updatedMachine: MachineDetail) => void;
   readonly?: boolean;
 }
-
-// ✅ Typisierte Color-Objekte zur Behebung der TypeScript-Fehler
-type ColorKey = 'blue' | 'green' | 'purple' | 'pink' | 'yellow' | 'orange' | 'red' | 'indigo';
-
-const colorClasses: Record<ColorKey, string> = {
-  blue: 'border-blue-200 bg-blue-50',
-  green: 'border-green-200 bg-green-50',
-  purple: 'border-purple-200 bg-purple-50',
-  pink: 'border-pink-200 bg-pink-50',
-  yellow: 'border-yellow-200 bg-yellow-50',
-  orange: 'border-orange-200 bg-orange-50',
-  red: 'border-red-200 bg-red-50',
-  indigo: 'border-indigo-200 bg-indigo-50'
-};
-
-const iconClasses: Record<ColorKey, string> = {
-  blue: 'text-blue-600',
-  green: 'text-green-600',
-  purple: 'text-purple-600',
-  pink: 'text-pink-600',
-  yellow: 'text-yellow-600',
-  orange: 'text-orange-600',
-  red: 'text-red-600',
-  indigo: 'text-indigo-600'
-};
 
 const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   machine,
@@ -229,12 +204,11 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   // Check if has changes
   const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
 
-  // Field definitions with grouping
+  // Clean field definitions with consistent styling
   const fieldGroups = {
     basic: {
       title: 'Basis-Eigenschaften',
       icon: CogIcon,
-      color: 'blue' as ColorKey,
       fields: [
         { key: 'magazineType', label: 'Magazin-Typ', type: 'text', placeholder: 'z.B. minimag 20 S1' },
         { key: 'materialBarLength', label: 'Materialstangenlänge (mm)', type: 'number', min: 0, max: 10000 },
@@ -246,7 +220,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     customer: {
       title: 'Kundendaten',
       icon: UserIcon,
-      color: 'green' as ColorKey,
       fields: [
         { key: 'customerName', label: 'Kundenname', type: 'text', placeholder: 'z.B. Citizen' },
         { key: 'customerNumber', label: 'Kundennummer', type: 'text', placeholder: 'z.B. 803023' },
@@ -256,7 +229,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     production: {
       title: 'Produktionsdaten',
       icon: ClockIcon,
-      color: 'purple' as ColorKey,
       fields: [
         { key: 'productionWeek', label: 'Produktionswoche', type: 'text', placeholder: 'z.B. 49/2018' },
         { key: 'buildVariant', label: 'Bauvariante', type: 'text', placeholder: 'z.B. C' },
@@ -266,7 +238,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     colors: {
       title: 'Farben',
       icon: SwatchIcon,
-      color: 'pink' as ColorKey,
       fields: [
         { key: 'baseColor', label: 'Grundfarbe', type: 'text', placeholder: 'z.B. Munsell Gray Color' },
         { key: 'coverColor', label: 'Abdeckungsfarbe', type: 'text', placeholder: 'z.B. Munsell White Color' },
@@ -277,7 +248,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     documentation: {
       title: 'Dokumentation',
       icon: DocumentTextIcon,
-      color: 'yellow' as ColorKey,
       fields: [
         { 
           key: 'documentationLanguage', 
@@ -291,7 +261,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     lathe: {
       title: 'Drehmaschine',
       icon: WrenchScrewdriverIcon,
-      color: 'orange' as ColorKey,
       fields: [
         { key: 'latheManufacturer', label: 'Drehmaschinen-Hersteller', type: 'text', placeholder: 'z.B. Citizen' },
         { key: 'latheType', label: 'Drehmaschinentyp', type: 'text', placeholder: 'z.B. L 20 E M8;M10;M12 (L 220)' },
@@ -303,7 +272,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     electrical: {
       title: 'Elektrische Daten',
       icon: BoltIcon,
-      color: 'red' as ColorKey,
       fields: [
         { key: 'magazineNumber', label: 'Magazin-Nummer', type: 'text', placeholder: 'z.B. 48' },
         { key: 'positionNumber', label: 'Positionsnummer', type: 'text', placeholder: 'z.B. 1' },
@@ -317,7 +285,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     article: {
       title: 'Artikel',
       icon: CubeIcon,
-      color: 'indigo' as ColorKey,
       fields: [
         { key: 'articleNumber', label: 'Artikelnummer', type: 'text', placeholder: 'z.B. 048-32-1541-01BC' }
       ]
@@ -338,7 +305,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     
     return (
       <div key={field.key} className="space-y-2">
-        <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={fieldId} className="block text-sm font-semibold text-gray-700">
           {field.label}
         </label>
         
@@ -363,7 +330,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 id={fieldId}
                 value={value as string || ''}
                 onChange={(e) => handleInputChange(field.key, e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
               >
                 {field.options?.map((option: string) => (
                   <option key={option} value={option}>
@@ -380,7 +347,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 min={field.min}
                 max={field.max}
                 placeholder={field.placeholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
               />
             ) : (
               <input
@@ -389,15 +356,19 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 value={value as string || ''}
                 onChange={(e) => handleInputChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
               />
             )}
           </>
         ) : (
           // View Mode
-          <div className={`px-3 py-2 rounded-lg ${isEmpty ? 'bg-gray-50 text-gray-400 italic' : 'bg-gray-50 text-gray-800'}`}>
+          <div className={`px-4 py-3 rounded-xl ${
+            isEmpty 
+              ? 'bg-gray-50 text-gray-500 italic' 
+              : 'bg-gray-50 text-gray-900 font-medium'
+          }`}>
             {field.type === 'boolean' ? (
-              <span className={`font-medium ${value ? 'text-green-600' : 'text-gray-500'}`}>
+              <span className={`font-semibold ${value ? 'text-emerald-600' : 'text-gray-500'}`}>
                 {value ? 'Ja' : 'Nein'}
               </span>
             ) : field.type === 'number' && field.key === 'materialBarLength' ? (
@@ -411,14 +382,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     );
   };
 
-  // Render group
+  // Render group with consistent design
   const renderGroup = (groupKey: string, group: any) => {
     const isExpanded = expandedGroups.has(groupKey);
     const GroupIcon = group.icon;
-    
-    // ✅ Typsichere Zugriffe auf die Color-Objekte mit Fallback
-    const borderColorClass = colorClasses[group.color as ColorKey] || colorClasses.blue;
-    const iconColorClass = iconClasses[group.color as ColorKey] || iconClasses.blue;
 
     // Count filled fields in this group
     const filledFields = group.fields.filter((field: any) => {
@@ -438,24 +405,26 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     }
 
     return (
-      <div key={groupKey} className={`border rounded-xl ${borderColorClass} overflow-hidden`}>
+      <div key={groupKey} className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <button
           onClick={() => toggleGroup(groupKey)}
-          className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/50 transition-colors"
+          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center space-x-3">
-            <GroupIcon className={`h-5 w-5 ${iconColorClass}`} />
-            <span className="font-semibold text-gray-800">{group.title}</span>
-            <span className="text-sm text-gray-500">
-              ({filledFields.length}/{group.fields.length})
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+              <GroupIcon className="h-4 w-4 text-gray-600" />
+            </div>
+            <span className="font-semibold text-gray-900">{group.title}</span>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
+              {filledFields.length}/{group.fields.length}
             </span>
           </div>
-          <ChevronDownIcon className={`h-5 w-5 text-gray-500 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+          <ChevronDownIcon className={`h-5 w-5 text-gray-400 transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
         </button>
         
         {isExpanded && (
-          <div className="px-6 pb-6 bg-white/50">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="px-6 pb-6 bg-gray-50/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
               {group.fields.map((field: any) => renderField(field))}
             </div>
           </div>
@@ -465,163 +434,171 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <CogIcon className="h-6 w-6 text-blue-600" />
+    <div className="space-y-8">
+      {/* Clean Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+              <CogIcon className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Magazin-Eigenschaften</h2>
+              <p className="text-gray-600 mt-1">Erweiterte Werkstattauftrag-Daten</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">Magazin-Eigenschaften</h2>
-            <p className="text-gray-600">Erweiterte Werkstattauftrag-Daten</p>
-          </div>
-        </div>
-        
-        {!readonly && (
-          <div className="flex items-center space-x-3">
-            {/* View Controls */}
-            <button
-              onClick={() => setShowEmptyFields(!showEmptyFields)}
-              className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {showEmptyFields ? (
+          
+          {!readonly && (
+            <div className="flex items-center space-x-3">
+              {/* View Controls */}
+              <button
+                onClick={() => setShowEmptyFields(!showEmptyFields)}
+                className="flex items-center space-x-2 px-4 py-2 text-sm border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+              >
+                {showEmptyFields ? (
+                  <>
+                    <EyeSlashIcon className="h-4 w-4" />
+                    <span>Leere ausblenden</span>
+                  </>
+                ) : (
+                  <>
+                    <EyeIcon className="h-4 w-4" />
+                    <span>Alle anzeigen</span>
+                  </>
+                )}
+              </button>
+              
+              {/* Edit/Save Controls */}
+              {isEditing ? (
                 <>
-                  <EyeSlashIcon className="h-4 w-4" />
-                  <span>Leere ausblenden</span>
+                  <button
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                    className="px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving || !hasChanges}
+                    className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        <span>Speichern...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckIcon className="h-4 w-4" />
+                        <span>Speichern{hasChanges ? ' *' : ''}</span>
+                      </>
+                    )}
+                  </button>
                 </>
               ) : (
-                <>
-                  <EyeIcon className="h-4 w-4" />
-                  <span>Alle anzeigen</span>
-                </>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
+                >
+                  <PencilIcon className="h-4 w-4" />
+                  <span>Bearbeiten</span>
+                </button>
               )}
-            </button>
-            
-            {/* Edit/Save Controls */}
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  Abbrechen
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving || !hasChanges}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Speichern...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckIcon className="h-4 w-4" />
-                      <span>Speichern{hasChanges ? ' *' : ''}</span>
-                    </>
-                  )}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                <PencilIcon className="h-4 w-4" />
-                <span>Bearbeiten</span>
-              </button>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Completeness Indicator */}
+      {/* Clean Completeness Indicator */}
       {completenessData && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <ChartBarIcon className="h-6 w-6 text-blue-600" />
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <ChartBarIcon className="h-5 w-5 text-blue-600" />
+              </div>
               <div>
-                <h3 className="font-semibold text-blue-800">Vollständigkeit</h3>
-                <p className="text-sm text-blue-600">
+                <h3 className="font-semibold text-blue-900">Vollständigkeit</h3>
+                <p className="text-blue-700">
                   {completenessData.filledFields} von {completenessData.totalFields} Feldern ausgefüllt
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-blue-800">{completenessData.completeness}%</div>
-              <div className="text-sm text-blue-600">Vollständig</div>
+              <div className="text-3xl font-bold text-blue-900">{completenessData.completeness}%</div>
+              <div className="text-sm text-blue-700">Vollständig</div>
             </div>
           </div>
           
           {/* Progress Bar */}
-          <div className="w-full bg-blue-200 rounded-full h-3 mb-3">
+          <div className="w-full bg-blue-200 rounded-full h-3 mb-4">
             <div 
-              className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+              className="bg-blue-600 h-3 rounded-full transition-all duration-500"
               style={{ width: `${completenessData.completeness}%` }}
             ></div>
           </div>
           
           <div className="flex items-center justify-between text-sm">
-            <span className={`font-medium ${completenessData.hasBasicData ? 'text-green-600' : 'text-yellow-600'}`}>
+            <span className={`font-medium ${completenessData.hasBasicData ? 'text-emerald-700' : 'text-amber-700'}`}>
               {completenessData.hasBasicData ? '✅ Grunddaten vorhanden' : '⚠️ Grunddaten fehlen'}
             </span>
-            <span className={`font-medium ${completenessData.hasExtendedData ? 'text-green-600' : 'text-gray-500'}`}>
+            <span className={`font-medium ${completenessData.hasExtendedData ? 'text-emerald-700' : 'text-gray-600'}`}>
               {completenessData.hasExtendedData ? '✅ Erweiterte Daten vorhanden' : '📝 Erweiterte Daten optional'}
             </span>
           </div>
         </div>
       )}
 
-      {/* Error Display */}
+      {/* Clean Error Display */}
       {saveError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5" />
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+          <div className="flex items-start space-x-4">
+            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+            </div>
             <div>
-              <p className="text-red-700 font-medium">Fehler beim Speichern</p>
-              <p className="text-red-600 text-sm mt-1">{saveError}</p>
+              <p className="text-red-900 font-semibold">Fehler beim Speichern</p>
+              <p className="text-red-800 mt-1">{saveError}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Property Groups */}
-      <div className="space-y-4">
+      {/* Clean Property Groups */}
+      <div className="space-y-6">
         {Object.entries(fieldGroups).map(([groupKey, group]) => renderGroup(groupKey, group))}
       </div>
 
-      {/* Notes Section */}
-      <div className="border border-gray-200 rounded-xl bg-gray-50 p-6">
-        <h3 className="font-semibold text-gray-800 mb-4 flex items-center space-x-2">
-          <DocumentTextIcon className="h-5 w-5 text-gray-600" />
-          <span>Zusätzliche Notizen</span>
-        </h3>
+      {/* Clean Notes Section */}
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+            <DocumentTextIcon className="h-4 w-4 text-gray-600" />
+          </div>
+          <h3 className="font-semibold text-gray-900">Zusätzliche Notizen</h3>
+        </div>
         
         {isEditing ? (
           <textarea
             value={formData.magazinePropertiesNotes || ''}
             onChange={(e) => handleInputChange('magazinePropertiesNotes', e.target.value)}
-            rows={3}
+            rows={4}
             placeholder="Zusätzliche Informationen zu den Magazin-Eigenschaften..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all hover:border-gray-300"
           />
         ) : (
-          <div className="px-3 py-2 bg-white rounded-lg text-gray-800">
+          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-900">
             {formData.magazinePropertiesNotes || (
-              <span className="text-gray-400 italic">Keine zusätzlichen Notizen</span>
+              <span className="text-gray-500 italic">Keine zusätzlichen Notizen</span>
             )}
           </div>
         )}
       </div>
 
-      {/* Metadata */}
+      {/* Clean Metadata Footer */}
       {(machine.magazinePropertiesLastUpdated || machine.magazinePropertiesUpdatedBy) && (
-        <div className="text-xs text-gray-500 pt-4 border-t border-gray-200">
+        <div className="text-sm text-gray-500 pt-6 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <span>
               Letzte Aktualisierung: {machine.magazinePropertiesLastUpdated 

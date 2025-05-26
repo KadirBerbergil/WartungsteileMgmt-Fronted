@@ -1,4 +1,4 @@
-// src/pages/machines/EnterprisePdfUpload.tsx - ENTERPRISE MULTI-MACHINE SYSTEM
+// src/pages/machines/EnterprisePdfUpload.tsx - Clean Modern Design
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -14,8 +14,10 @@ import {
   XMarkIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
+import { Link } from 'react-router-dom';
 
 // TypeScript Interfaces für Enterprise System
 interface ExtractedMachineData {
@@ -100,7 +102,7 @@ const EnterprisePdfUpload = () => {
     }
   };
 
-  // 🔥 ENTERPRISE MULTI-MACHINE-EXTRAKTION
+  // Enterprise Multi-Machine-Extraktion
   const processEnterprisePdf = async () => {
     if (!uploadedFile) return;
     
@@ -124,7 +126,6 @@ const EnterprisePdfUpload = () => {
       console.log('✅ Multi-Machine-Extraktion erfolgreich:', result);
       
       if (result.success && result.extractedMachines.length > 0) {
-        // Alle validen Maschinen vorauswählen
         const validMachineNumbers = result.extractedMachines
           .filter(m => m.isValid && !m.alreadyExists)
           .map(m => m.machineNumber);
@@ -173,7 +174,7 @@ const EnterprisePdfUpload = () => {
     setSelectedMachines(new Set());
   };
 
-  // 🔥 ENTERPRISE BATCH-CREATION
+  // Enterprise Batch-Creation
   const createSelectedMachines = async () => {
     if (!extractionResult || selectedMachines.size === 0) return;
 
@@ -187,7 +188,6 @@ const EnterprisePdfUpload = () => {
 
       console.log('🚀 Starte Batch-Erstellung für', machinesToCreate.length, 'Maschinen');
 
-      // Simuliere schrittweise Erstellung (in echter Implementierung würde das via WebSocket/SignalR laufen)
       let successCount = 0;
       let failCount = 0;
       const results: BatchCreateItem[] = [];
@@ -202,7 +202,6 @@ const EnterprisePdfUpload = () => {
         });
 
         try {
-          // 1. Maschine erstellen
           const createData = {
             machineNumber: machine.machineNumber,
             type: machine.magazineType || 'Unbekannt',
@@ -212,7 +211,6 @@ const EnterprisePdfUpload = () => {
           const createResponse = await api.post('/Machines', createData);
           const newMachineId = createResponse.data;
 
-          // 2. Magazin-Eigenschaften setzen
           if (machine.magazineType || machine.materialBarLength || machine.feedChannel) {
             const magazineData = {
               MagazineType: machine.magazineType || '',
@@ -250,13 +248,11 @@ const EnterprisePdfUpload = () => {
           failCount++;
         }
 
-        // Kleine Pause zwischen Requests um Server nicht zu überlasten
         if (i < machinesToCreate.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 200));
         }
       }
 
-      // Batch-Ergebnis zusammenstellen
       const batchResult: BatchCreateResult = {
         success: successCount > 0,
         totalMachines: machinesToCreate.length,
@@ -264,13 +260,12 @@ const EnterprisePdfUpload = () => {
         failed: failCount,
         results: results,
         summary: `${successCount} Maschinen erfolgreich erstellt, ${failCount} Fehler`,
-        processingTime: 0 // Wird vom Backend berechnet
+        processingTime: 0
       };
 
       setBatchResult(batchResult);
       setStep('complete');
 
-      // Cache invalidieren
       queryClient.invalidateQueries({ queryKey: ['machines'] });
 
       console.log('🏆 Batch-Erstellung abgeschlossen:', batchResult);
@@ -295,399 +290,405 @@ const EnterprisePdfUpload = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8">
-      {/* Enterprise Header */}
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-3 mb-4">
-          <div className="p-3 bg-blue-100 rounded-xl">
-            <SparklesIcon className="h-8 w-8 text-blue-600" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <Link 
+            to="/machines"
+            className="inline-flex items-center text-slate-600 hover:text-slate-900 mb-6 transition-colors"
+          >
+            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+            Zurück zur Liste
+          </Link>
+          
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center">
+              <CloudArrowUpIcon className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">KI Multi-Machine-Upload</h1>
+              <p className="text-slate-600 mt-1">Bis zu 50+ Werkstattaufträge automatisch verarbeiten</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">🏭 Enterprise Multi-Machine-Extraktion</h1>
-            <p className="text-gray-600">Bis zu 50+ Werkstattaufträge automatisch verarbeiten</p>
+
+          {/* Info Banner */}
+          <div className="bg-white border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <InformationCircleIcon className="h-5 w-5 text-blue-600 mr-3" />
+              <div>
+                <span className="font-semibold text-blue-900">🚀 Enterprise KI-System</span>
+                <p className="text-blue-800 text-sm">Hochmoderne OCR-Technologie extrahiert automatisch alle Maschinendaten aus Multi-Page-PDFs</p>
+              </div>
+            </div>
           </div>
         </div>
         
-        {/* Progress Indicator */}
-        <div className="flex items-center justify-center space-x-8 mt-8">
-          {[
-            { id: 'upload', name: 'Upload', icon: CloudArrowUpIcon },
-            { id: 'processing', name: 'KI-Verarbeitung', icon: SparklesIcon },
-            { id: 'review', name: 'Auswahl', icon: EyeIcon },
-            { id: 'batch-creating', name: 'Batch-Erstellung', icon: CogIcon },
-            { id: 'complete', name: 'Fertig', icon: CheckIcon }
-          ].map((stepItem, index) => {
-            const StepIcon = stepItem.icon;
-            const isActive = step === stepItem.id;
-            const isCompleted = ['upload', 'processing', 'review', 'batch-creating', 'complete'].indexOf(step) > index;
-            
-            return (
-              <div key={stepItem.id} className="flex items-center">
-                <div className={`flex items-center space-x-2 ${
-                  isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                }`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                    isActive ? 'border-blue-600 bg-blue-50' : 
-                    isCompleted ? 'border-green-600 bg-green-50' : 'border-gray-300'
+        {/* Clean Progress Steps */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            {[
+              { id: 'upload', name: 'Upload', icon: CloudArrowUpIcon, active: step === 'upload' },
+              { id: 'processing', name: 'KI-Verarbeitung', icon: SparklesIcon, active: step === 'processing' },
+              { id: 'review', name: 'Auswahl', icon: EyeIcon, active: step === 'review' },
+              { id: 'batch-creating', name: 'Batch-Erstellung', icon: CogIcon, active: step === 'batch-creating' },
+              { id: 'complete', name: 'Fertig', icon: CheckIcon, active: step === 'complete' }
+            ].map((stepItem, index) => {
+              const StepIcon = stepItem.icon;
+              const steps = ['upload', 'processing', 'review', 'batch-creating', 'complete'];
+              const currentIndex = steps.indexOf(step);
+              const isCompleted = currentIndex > index;
+              
+              return (
+                <div key={stepItem.id} className="flex flex-col items-center">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center border-2 transition-all ${
+                    stepItem.active 
+                      ? 'border-blue-600 bg-blue-50 text-blue-600' 
+                      : isCompleted 
+                        ? 'border-green-600 bg-green-50 text-green-600' 
+                        : 'border-slate-300 bg-slate-50 text-slate-400'
                   }`}>
-                    {isCompleted ? (
-                      <CheckIcon className="h-5 w-5 text-green-600" />
+                    {isCompleted && !stepItem.active ? (
+                      <CheckIcon className="h-5 w-5" />
                     ) : (
                       <StepIcon className="h-5 w-5" />
                     )}
                   </div>
-                  <span className="font-medium text-sm">{stepItem.name}</span>
+                  <span className={`mt-2 text-xs font-medium ${
+                    stepItem.active 
+                      ? 'text-blue-600' 
+                      : isCompleted 
+                        ? 'text-green-600' 
+                        : 'text-slate-500'
+                  }`}>
+                    {stepItem.name}
+                  </span>
                 </div>
-                {index < 4 && (
-                  <div className={`mx-4 h-px w-12 ${
-                    isCompleted ? 'bg-green-600' : 'bg-gray-300'
-                  }`} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Upload Phase */}
-      {step === 'upload' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <div
-            onDrop={onDrop}
-            onDragOver={(e) => e.preventDefault()}
-            className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer"
-          >
-            <CloudArrowUpIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Multi-Werkstattauftrag PDF hier ablegen
-            </h3>
-            <p className="text-gray-500 mb-6">
-              Unterstützt PDFs mit 1-50+ Werkstattaufträgen
-            </p>
-            
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleFileSelect}
-              className="hidden"
-              id="pdf-upload"
-            />
-            <label
-              htmlFor="pdf-upload"
-              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg cursor-pointer transition-all"
-            >
-              <DocumentTextIcon className="h-5 w-5" />
-              <span>PDF auswählen</span>
-            </label>
+              );
+            })}
           </div>
+        </div>
 
-          {uploadedFile && (
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <DocumentTextIcon className="h-6 w-6 text-green-600" />
+        {/* Upload Phase */}
+        {step === 'upload' && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <div
+              onDrop={onDrop}
+              onDragOver={(e) => e.preventDefault()}
+              className="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center hover:border-blue-400 hover:bg-white transition-all cursor-pointer"
+            >
+              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <CloudArrowUpIcon className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                Multi-Werkstattauftrag PDF hier ablegen
+              </h3>
+              <p className="text-slate-600 mb-6">
+                Unterstützt PDFs mit 1-50+ Werkstattaufträgen
+              </p>
+              
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="pdf-upload"
+              />
+              <label
+                htmlFor="pdf-upload"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                <DocumentTextIcon className="h-5 w-5 mr-2" />
+                PDF auswählen
+              </label>
+            </div>
+
+            {uploadedFile && (
+              <div className="mt-6 p-4 bg-white border border-green-500 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <DocumentTextIcon className="h-8 w-8 text-green-600 mr-3" />
+                    <div>
+                      <p className="font-medium text-green-900">{uploadedFile.name}</p>
+                      <p className="text-green-700 text-sm">
+                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={processEnterprisePdf}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      <SparklesIcon className="h-4 w-4 inline mr-2" />
+                      KI-Extraktion starten
+                    </button>
+                    <button
+                      onClick={() => setUploadedFile(null)}
+                      className="p-2 text-slate-500 hover:text-red-600 transition-colors"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {errors.length > 0 && (
+              <div className="mt-4 p-4 bg-white border border-red-500 rounded-lg">
+                <div className="flex items-center">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mr-3" />
                   <div>
-                    <p className="font-medium text-green-800">{uploadedFile.name}</p>
-                    <p className="text-sm text-green-600">
-                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
+                    {errors.map((error, index) => (
+                      <p key={index} className="text-red-800 font-medium">{error}</p>
+                    ))}
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Processing Phase */}
+        {step === 'processing' && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+              <SparklesIcon className="h-8 w-8 text-white animate-pulse" />
+            </div>
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-blue-600 mx-auto mb-6"></div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">🤖 Enterprise KI-Verarbeitung läuft</h3>
+            <div className="space-y-2 text-slate-600 max-w-md mx-auto">
+              <p>✅ PDF wird an Azure Document Intelligence gesendet...</p>
+              <p>🔍 Multi-Page OCR-Texterkennung läuft...</p>
+              <p>🧠 Text-Segmentierung nach Werkstattaufträgen...</p>
+              <p>📋 Automatische Datenextraktion für alle Maschinen...</p>
+              <p>🔄 Validierung und Deduplication...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Review Phase */}
+        {step === 'review' && extractionResult && (
+          <div className="space-y-6">
+            {/* Statistics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white p-4 rounded-lg border border-slate-200">
+                <div className="text-2xl font-bold text-blue-600">{extractionResult.totalMachinesFound}</div>
+                <div className="text-slate-600 text-sm">Gefunden</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-slate-200">
+                <div className="text-2xl font-bold text-green-600">{extractionResult.validMachines}</div>
+                <div className="text-slate-600 text-sm">Valide</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-slate-200">
+                <div className="text-2xl font-bold text-amber-600">{extractionResult.duplicateMachines}</div>
+                <div className="text-slate-600 text-sm">Duplikate</div>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-slate-200">
+                <div className="text-2xl font-bold text-purple-600">{selectedMachines.size}</div>
+                <div className="text-slate-600 text-sm">Ausgewählt</div>
+              </div>
+            </div>
+
+            {/* Selection Controls */}
+            <div className="bg-white rounded-lg border border-slate-200 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex space-x-3">
                   <button
-                    onClick={processEnterprisePdf}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all flex items-center space-x-2"
+                    onClick={selectAllValidMachines}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                   >
-                    <SparklesIcon className="h-4 w-4" />
-                    <span>Multi-Machine-Extraktion starten</span>
+                    Alle validen auswählen
                   </button>
                   <button
-                    onClick={() => setUploadedFile(null)}
-                    className="text-gray-500 hover:text-red-600 transition-colors"
+                    onClick={clearAllSelections}
+                    className="px-4 py-2 bg-slate-500 text-white rounded-lg font-medium hover:bg-slate-600 transition-colors"
                   >
-                    <XMarkIcon className="h-5 w-5" />
+                    Auswahl löschen
                   </button>
+                </div>
+                <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-lg">
+                  {selectedMachines.size} von {extractionResult.validMachines} ausgewählt
                 </div>
               </div>
             </div>
-          )}
 
-          {errors.length > 0 && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5" />
-                <div>
-                  {errors.map((error, index) => (
-                    <p key={index} className="text-red-700">{error}</p>
-                  ))}
-                </div>
+            {/* Machine List */}
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                <h3 className="font-semibold text-slate-900">Extrahierte Maschinen</h3>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Processing Phase */}
-      {step === 'processing' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">🤖 Enterprise KI-Verarbeitung läuft</h3>
-          <div className="space-y-2 text-gray-600">
-            <p>✅ PDF wird an Azure Document Intelligence gesendet...</p>
-            <p>🔍 Multi-Page OCR-Texterkennung läuft...</p>
-            <p>🧠 Text-Segmentierung nach Werkstattaufträgen...</p>
-            <p>📋 Automatische Datenextraktion für alle Maschinen...</p>
-            <p>🔄 Validierung und Deduplication...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Multi-Machine Review Phase */}
-      {step === 'review' && extractionResult && (
-        <div className="space-y-6">
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <InformationCircleIcon className="h-5 w-5 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Gefunden</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-900">{extractionResult.totalMachinesFound}</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-medium text-green-900">Valide</span>
-              </div>
-              <p className="text-2xl font-bold text-green-900">{extractionResult.validMachines}</p>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <ExclamationCircleIcon className="h-5 w-5 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-900">Duplikate</span>
-              </div>
-              <p className="text-2xl font-bold text-yellow-900">{extractionResult.duplicateMachines}</p>
-            </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2">
-                <CheckIcon className="h-5 w-5 text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">Ausgewählt</span>
-              </div>
-              <p className="text-2xl font-bold text-purple-900">{selectedMachines.size}</p>
-            </div>
-          </div>
-
-          {/* Selection Controls */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={selectAllValidMachines}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-all"
-                >
-                  Alle validen auswählen
-                </button>
-                <button
-                  onClick={clearAllSelections}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-all"
-                >
-                  Auswahl löschen
-                </button>
-              </div>
-              <div className="text-sm text-gray-600">
-                {selectedMachines.size} von {extractionResult.validMachines} ausgewählt
-              </div>
-            </div>
-          </div>
-
-          {/* Machine List */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Extrahierte Maschinen</h3>
-            </div>
-            
-            <div className="max-h-96 overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Auswahl
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Maschinennummer
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Typ
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Materialstange
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {extractionResult.extractedMachines.map((machine, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedMachines.has(machine.machineNumber)}
-                          onChange={() => toggleMachineSelection(machine.machineNumber)}
-                          disabled={!machine.isValid || machine.alreadyExists}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {machine.machineNumber}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {machine.magazineType || '-'}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {machine.materialBarLength ? `${machine.materialBarLength} mm` : '-'}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        {machine.isValid ? (
-                          machine.alreadyExists ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Existiert bereits
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Bereit
-                            </span>
-                          )
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            Ungültig
-                          </span>
-                        )}
-                      </td>
+              
+              <div className="max-h-80 overflow-y-auto">
+                <table className="min-w-full">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Auswahl</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Maschinennummer</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Typ</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Materialstange</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={reset}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-all"
-            >
-              Von vorn beginnen
-            </button>
-            <button
-              onClick={createSelectedMachines}
-              disabled={selectedMachines.size === 0 || isProcessing}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-all flex items-center space-x-2"
-            >
-              <SparklesIcon className="h-5 w-5" />
-              <span>{selectedMachines.size} Maschinen erstellen</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Batch Creating Phase */}
-      {step === 'batch-creating' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <div className="text-center mb-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto mb-4"></div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">🏭 Batch-Erstellung läuft</h3>
-            <p className="text-gray-600">{batchProgress.status}</p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Fortschritt</span>
-              <span>{batchProgress.current} von {batchProgress.total}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${batchProgress.total > 0 ? (batchProgress.current / batchProgress.total) * 100 : 0}%` }}
-              ></div>
-            </div>
-            <div className="text-center text-sm text-gray-500 mt-2">
-              {batchProgress.total > 0 ? Math.round((batchProgress.current / batchProgress.total) * 100) : 0}% abgeschlossen
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Complete Phase */}
-      {step === 'complete' && batchResult && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckIcon className="h-10 w-10 text-green-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">🎉 Batch-Erstellung abgeschlossen!</h3>
-            <p className="text-gray-600 mb-6">{batchResult.summary}</p>
-          </div>
-
-          {/* Results Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-900">{batchResult.successfullyCreated}</div>
-              <div className="text-sm text-green-700">Erfolgreich erstellt</div>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-red-900">{batchResult.failed}</div>
-              <div className="text-sm text-red-700">Fehlgeschlagen</div>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-900">{batchResult.totalMachines}</div>
-              <div className="text-sm text-blue-700">Gesamt verarbeitet</div>
-            </div>
-          </div>
-
-          {/* Detailed Results */}
-          {batchResult.results.length > 0 && (
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-gray-800 mb-4">Detaillierte Ergebnisse</h4>
-              <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
-                {batchResult.results.map((result, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-b-0">
-                    <div className="flex items-center space-x-3">
-                      {result.success ? (
-                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                      ) : (
-                        <ExclamationCircleIcon className="h-5 w-5 text-red-600" />
-                      )}
-                      <span className="font-medium">{result.machineNumber}</span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {result.success ? 'Erfolgreich erstellt' : result.error}
-                    </div>
-                  </div>
-                ))}
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {extractionResult.extractedMachines.map((machine, index) => (
+                      <tr key={index} className="hover:bg-slate-50">
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedMachines.has(machine.machineNumber)}
+                            onChange={() => toggleMachineSelection(machine.machineNumber)}
+                            disabled={!machine.isValid || machine.alreadyExists}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                          />
+                        </td>
+                        <td className="px-6 py-4 font-medium text-slate-900">{machine.machineNumber}</td>
+                        <td className="px-6 py-4 text-slate-600">{machine.magazineType || '-'}</td>
+                        <td className="px-6 py-4 text-slate-600">
+                          {machine.materialBarLength ? `${machine.materialBarLength} mm` : '-'}
+                        </td>
+                        <td className="px-6 py-4">
+                          {machine.isValid ? (
+                            machine.alreadyExists ? (
+                              <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full">
+                                Existiert bereits
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                Bereit
+                              </span>
+                            )
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                              Ungültig
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-center space-x-4">
-            <button
-              onClick={() => navigate('/machines')}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all"
-            >
-              Zur Maschinenliste
-            </button>
-            <button
-              onClick={reset}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-all"
-            >
-              Neue PDF verarbeiten
-            </button>
+            {/* Action Buttons */}
+            <div className="flex justify-between">
+              <button
+                onClick={reset}
+                className="px-6 py-3 bg-slate-500 text-white rounded-lg font-medium hover:bg-slate-600 transition-colors"
+              >
+                Von vorn beginnen
+              </button>
+              <button
+                onClick={createSelectedMachines}
+                disabled={selectedMachines.size === 0 || isProcessing}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors"
+              >
+                <SparklesIcon className="h-4 w-4 inline mr-2" />
+                {selectedMachines.size} Maschinen erstellen
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Batch Creating Phase */}
+        {step === 'batch-creating' && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+              <CogIcon className="h-8 w-8 text-white animate-spin" />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-4">🏭 Batch-Erstellung läuft</h3>
+            <p className="text-slate-600 mb-6">{batchProgress.status}</p>
+
+            <div className="max-w-md mx-auto">
+              <div className="flex justify-between text-sm text-slate-600 mb-2">
+                <span>Fortschritt</span>
+                <span>{batchProgress.current} von {batchProgress.total}</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-3">
+                <div 
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${batchProgress.total > 0 ? (batchProgress.current / batchProgress.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+              <div className="text-lg font-semibold text-slate-700 mt-3">
+                {batchProgress.total > 0 ? Math.round((batchProgress.current / batchProgress.total) * 100) : 0}% abgeschlossen
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Complete Phase */}
+        {step === 'complete' && batchResult && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <div className="w-20 h-20 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+              <CheckIcon className="h-10 w-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-4">🎉 Batch-Erstellung abgeschlossen!</h3>
+            <p className="text-slate-600 text-lg mb-8">{batchResult.summary}</p>
+
+            {/* Results Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white border border-green-500 rounded-lg p-6">
+                <div className="text-3xl font-bold text-green-600 mb-2">{batchResult.successfullyCreated}</div>
+                <div className="text-green-700 font-medium">Erfolgreich erstellt</div>
+              </div>
+              <div className="bg-white border border-red-500 rounded-lg p-6">
+                <div className="text-3xl font-bold text-red-600 mb-2">{batchResult.failed}</div>
+                <div className="text-red-700 font-medium">Fehlgeschlagen</div>
+              </div>
+              <div className="bg-white border border-blue-500 rounded-lg p-6">
+                <div className="text-3xl font-bold text-blue-600 mb-2">{batchResult.totalMachines}</div>
+                <div className="text-blue-700 font-medium">Gesamt verarbeitet</div>
+              </div>
+            </div>
+
+            {/* Detailed Results */}
+            {batchResult.results.length > 0 && (
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold text-slate-900 mb-4">Detaillierte Ergebnisse</h4>
+                <div className="bg-slate-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+                  <div className="space-y-2">
+                    {batchResult.results.map((result, index) => (
+                      <div key={index} className="flex items-center justify-between py-2 px-3 bg-white rounded border border-slate-200">
+                        <div className="flex items-center">
+                          {result.success ? (
+                            <CheckCircleIcon className="h-5 w-5 text-green-600 mr-3" />
+                          ) : (
+                            <ExclamationCircleIcon className="h-5 w-5 text-red-600 mr-3" />
+                          )}
+                          <span className="font-medium text-slate-900">{result.machineNumber}</span>
+                        </div>
+                        <div className="text-sm text-slate-600">
+                          {result.success ? 'Erfolgreich erstellt' : result.error}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => navigate('/machines')}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                <CogIcon className="h-4 w-4 inline mr-2" />
+                Zur Maschinenliste
+              </button>
+              <button
+                onClick={reset}
+                className="px-6 py-3 bg-slate-500 text-white rounded-lg font-medium hover:bg-slate-600 transition-colors"
+              >
+                Neue PDF verarbeiten
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

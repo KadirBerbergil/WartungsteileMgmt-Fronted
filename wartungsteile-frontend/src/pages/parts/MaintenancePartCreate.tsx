@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartCreate.tsx - Responsive Version (Zoom-Problem behoben)
+// src/pages/parts/MaintenancePartCreate.tsx - Clean & Modern Design
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -7,15 +7,33 @@ import {
   ArrowLeftIcon,
   CheckIcon,
   ExclamationTriangleIcon,
-  PlusIcon
+  PlusIcon,
+  WrenchScrewdriverIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
+
+interface FormData {
+  partNumber: string;
+  name: string;
+  description: string;
+  category: 'WearPart' | 'SparePart' | 'ConsumablePart' | 'ToolPart';
+  price: number;
+  manufacturer: string;
+  stockQuantity: number;
+}
+
+const CATEGORY_LABELS = {
+  WearPart: 'Verschleißteil',
+  SparePart: 'Ersatzteil', 
+  ConsumablePart: 'Verbrauchsmaterial',
+  ToolPart: 'Werkzeug'
+} as const;
 
 const MaintenancePartCreate = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  // Formular-State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     partNumber: '',
     name: '',
     description: '',
@@ -29,7 +47,6 @@ const MaintenancePartCreate = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Eingaben verarbeiten
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -38,32 +55,17 @@ const MaintenancePartCreate = () => {
         (value === '' ? 0 : parseFloat(value)) : value
     }));
     
-    // Fehler zurücksetzen wenn User tippt
     if (saveError) setSaveError(null);
     if (validationErrors.length > 0) setValidationErrors([]);
   };
 
-  // Formular validieren
   const validateForm = (): boolean => {
     const errors: string[] = [];
     
-    if (!formData.partNumber.trim()) {
-      errors.push('Teilenummer ist erforderlich');
-    }
-    
-    if (!formData.name.trim()) {
-      errors.push('Name ist erforderlich');
-    }
-    
-    if (formData.price <= 0) {
-      errors.push('Preis muss größer als 0 sein');
-    }
-    
-    if (formData.stockQuantity < 0) {
-      errors.push('Lagerbestand kann nicht negativ sein');
-    }
-    
-    // Teilenummer Format prüfen (relaxed version)
+    if (!formData.partNumber.trim()) errors.push('Teilenummer ist erforderlich');
+    if (!formData.name.trim()) errors.push('Name ist erforderlich');
+    if (formData.price <= 0) errors.push('Preis muss größer als 0 sein');
+    if (formData.stockQuantity < 0) errors.push('Lagerbestand kann nicht negativ sein');
     if (formData.partNumber && !formData.partNumber.match(/^[A-Z0-9-\s]+$/i)) {
       errors.push('Teilenummer darf nur Buchstaben, Zahlen, Bindestriche und Leerzeichen enthalten');
     }
@@ -72,20 +74,14 @@ const MaintenancePartCreate = () => {
     return errors.length === 0;
   };
 
-  // Speichern mit echter Backend-Integration
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Client-seitige Validierung
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
     
     setIsSaving(true);
     setSaveError(null);
 
     try {
-      // Daten für API vorbereiten
       const createData = {
         partNumber: formData.partNumber.trim(),
         name: formData.name.trim(),
@@ -96,48 +92,34 @@ const MaintenancePartCreate = () => {
         stockQuantity: formData.stockQuantity
       };
 
-      console.log('Erstelle Wartungsteil:', createData);
-      
-      // Echter API-Call
       const newPartId = await maintenancePartService.create(createData);
-      
-      console.log('Wartungsteil erfolgreich erstellt, ID:', newPartId);
-      
-      // Cache invalidieren damit Listen aktualisiert werden
       queryClient.invalidateQueries({ queryKey: ['maintenanceParts'] });
       
-      // Success! Weiterleitung zur Detail-Seite
       navigate(`/parts/${newPartId}`, { 
         replace: true,
         state: { message: 'Wartungsteil erfolgreich erstellt!' }
       });
       
     } catch (error: any) {
-      console.error('Fehler beim Erstellen:', error);
-      
-      // Detaillierte Fehlerbehandlung
-      if (error.response?.status === 400) {
-        // Validierungsfehler vom Backend
+      const status = error.response?.status;
+      if (status === 400) {
         if (error.response.data?.errors) {
           setValidationErrors(error.response.data.errors);
         } else {
           setSaveError('Ungültige Eingabedaten. Bitte prüfen Sie Ihre Eingaben.');
         }
-      } else if (error.response?.status === 409) {
+      } else if (status === 409) {
         setSaveError('Ein Wartungsteil mit dieser Teilenummer existiert bereits.');
-      } else if (error.response?.status >= 500) {
+      } else if (status >= 500) {
         setSaveError('Serverfehler. Bitte versuchen Sie es später erneut.');
-      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-        setSaveError('Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung.');
       } else {
-        setSaveError(`Fehler beim Erstellen: ${error.response?.data || error.message}`);
+        setSaveError('Netzwerkfehler. Bitte prüfen Sie Ihre Internetverbindung.');
       }
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Formular zurücksetzen
   const handleReset = () => {
     setFormData({
       partNumber: '',
@@ -152,343 +134,463 @@ const MaintenancePartCreate = () => {
     setValidationErrors([]);
   };
 
-  const isFormValid = formData.partNumber.trim() && formData.name.trim() && formData.price > 0;
+  const isFormValid = formData.partNumber.trim() !== '' && formData.name.trim() !== '' && formData.price > 0;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* RESPONSIVE HEADER - Stack bei kleineren Bildschirmen */}
-      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        {/* Linke Seite - Titel und Navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link 
-            to="/parts"
-            className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors font-medium w-fit"
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
-            <span>Zurück zur Liste</span>
-          </Link>
-          <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <PlusIcon className="h-4 w-4 text-green-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Neues Wartungsteil erstellen</h1>
-            </div>
-          </div>
-        </div>
-
-        {/* Rechte Seite - Buttons - Stack bei kleineren Bildschirmen */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3">
-          <Link
-            to="/parts"
-            className="px-4 py-2 text-center text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Abbrechen
-          </Link>
-          
-          <button
-            type="button"
-            onClick={handleReset}
-            className="px-4 py-2 text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Zurücksetzen
-          </button>
-          
-          <button
-            type="submit"
-            form="create-part-form"
-            disabled={isSaving || !isFormValid}
-            className="inline-flex items-center justify-center px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-all shadow-sm disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Wird erstellt...
-              </>
-            ) : (
-              <>
-                <CheckIcon className="h-4 w-4 mr-2" />
-                Wartungsteil erstellen
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* RESPONSIVE GRID - Stack auf kleineren Bildschirmen */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Formular - 3/4 der Breite auf großen Bildschirmen, full-width auf kleinen */}
-        <div className="xl:col-span-3">
-          {/* Formular mit ID für externen Submit-Button */}
-          <form id="create-part-form" onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Grunddaten Karte */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Grunddaten</h2>
-              
-              <div className="space-y-6">
-                {/* Teilenummer und Kategorie - Stack auf mobil */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Teilenummer *
-                    </label>
-                    <input
-                      type="text"
-                      name="partNumber"
-                      value={formData.partNumber}
-                      onChange={handleInputChange}
-                      placeholder="z.B. DDR5$ oder A-12345"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      required
-                    />
-                  </div>
+        {/* Header */}
+        <Header />
+        
+        {/* Action Buttons */}
+        <ActionButtons 
+          onReset={handleReset}
+          isSaving={isSaving}
+          isFormValid={isFormValid}
+        />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Kategorie *
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      required
-                    >
-                      <option value="WearPart">Verschleißteil</option>
-                      <option value="SparePart">Ersatzteil</option>
-                      <option value="ConsumablePart">Verbrauchsmaterial</option>
-                      <option value="ToolPart">Werkzeug</option>
-                    </select>
-                  </div>
-                </div>
+        {/* Info Banner */}
+        <InfoBanner />
 
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="z.B. DSRDSRD"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    required
-                  />
-                </div>
+        {/* Main Content */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          
+          {/* Form */}
+          <div className="xl:col-span-3">
+            <form id="create-part-form" onSubmit={handleSubmit}>
+              <FormFields 
+                formData={formData}
+                onChange={handleInputChange}
+              />
+              <ErrorDisplay 
+                saveError={saveError}
+                validationErrors={validationErrors}
+              />
+            </form>
+          </div>
 
-                {/* Preis und Lagerbestand - Stack auf mobil */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preis (€) *
-                    </label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      step="0.01"
-                      min="0.01"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Lagerbestand (Stück) *
-                    </label>
-                    <input
-                      type="number"
-                      name="stockQuantity"
-                      value={formData.stockQuantity}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Hersteller */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hersteller
-                  </label>
-                  <input
-                    type="text"
-                    name="manufacturer"
-                    value={formData.manufacturer}
-                    onChange={handleInputChange}
-                    placeholder="z.B. Bosch, Siemens"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                {/* Beschreibung */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Beschreibung
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
-                    placeholder="Detaillierte Beschreibung des Wartungsteils..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Fehleranzeigen */}
-            {(saveError || validationErrors.length > 0) && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    {saveError && (
-                      <p className="text-red-700 font-medium mb-2">{saveError}</p>
-                    )}
-                    {validationErrors.length > 0 && (
-                      <div>
-                        <p className="text-red-700 font-medium mb-2">Bitte korrigieren Sie folgende Fehler:</p>
-                        <ul className="list-disc list-inside text-red-600 text-sm space-y-1">
-                          {validationErrors.map((error, index) => (
-                            <li key={index}>{error}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </form>
-        </div>
-
-        {/* Live-Vorschau Sidebar - Responsive */}
-        <div className="xl:col-span-1">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6 xl:sticky xl:top-6">
-            <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-200">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm">👁</span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800">Live-Vorschau</h3>
-            </div>
-            
-            <div className="space-y-4">
-              {/* Teilenummer */}
-              <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Teilenummer</div>
-                <div className="text-base font-bold text-gray-900 break-words">
-                  {formData.partNumber || <span className="text-gray-400 italic font-normal">Noch nicht eingegeben</span>}
-                </div>
-              </div>
-              
-              {/* Name */}
-              <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Name</div>
-                <div className="text-base font-semibold text-gray-900 break-words">
-                  {formData.name || <span className="text-gray-400 italic font-normal">Noch nicht eingegeben</span>}
-                </div>
-              </div>
-              
-              {/* Kategorie */}
-              <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Kategorie</div>
-                <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-500 text-white">
-                  {formData.category === 'WearPart' ? 'Verschleißteil' :
-                   formData.category === 'SparePart' ? 'Ersatzteil' :
-                   formData.category === 'ConsumablePart' ? 'Verbrauchsmaterial' : 'Werkzeug'}
-                </span>
-              </div>
-              
-              {/* Preis */}
-              <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Preis</div>
-                <div className="text-2xl font-bold text-blue-600">{formData.price.toFixed(2)} €</div>
-              </div>
-              
-              {/* Lagerbestand */}
-              <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Lagerbestand</div>
-                <div className="text-base font-semibold text-gray-900">{formData.stockQuantity} Stück</div>
-              </div>
-              
-              {/* Hersteller - nur wenn ausgefüllt */}
-              {formData.manufacturer && (
-                <div>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Hersteller</div>
-                  <div className="text-base font-semibold text-gray-900 break-words">{formData.manufacturer}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Validierungs-Status */}
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <div className="flex items-center space-x-3">
-                {isFormValid ? (
-                  <>
-                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckIcon className="h-4 w-4 text-green-600" />
-                    </div>
-                    <span className="text-sm text-green-700 font-semibold">Bereit zum Erstellen</span>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <ExclamationTriangleIcon className="h-4 w-4 text-yellow-600" />
-                    </div>
-                    <span className="text-sm text-yellow-700 font-semibold">Pflichtfelder fehlen</span>
-                  </>
-                )}
-              </div>
-            </div>
+          {/* Live Preview */}
+          <div className="xl:col-span-1">
+            <LivePreview 
+              formData={formData}
+              isFormValid={isFormValid}
+            />
           </div>
         </div>
-      </div>
 
-      {/* Mobile Action Buttons - Nur auf kleinen Bildschirmen sichtbar */}
-      <div className="xl:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
-        <div className="flex gap-3 max-w-md mx-auto">
-          <Link
-            to="/parts"
-            className="flex-1 px-4 py-3 text-center text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Abbrechen
-          </Link>
-          <button
-            type="submit"
-            form="create-part-form"
-            disabled={isSaving || !isFormValid}
-            className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-all disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Erstellen...
-              </>
-            ) : (
-              <>
-                <CheckIcon className="h-4 w-4 mr-2" />
-                Erstellen
-              </>
-            )}
-          </button>
-        </div>
+        {/* Mobile Actions */}
+        <MobileActions 
+          isSaving={isSaving}
+          isFormValid={isFormValid}
+        />
       </div>
-
-      {/* Spacer für mobile Fixed Buttons */}
-      <div className="xl:hidden h-20"></div>
     </div>
   );
 };
+
+// Clean Header Component
+const Header = () => (
+  <div className="mb-8">
+    <div className="flex items-center space-x-4 mb-6">
+      <Link 
+        to="/parts"
+        className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors font-medium group"
+      >
+        <ArrowLeftIcon className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
+        <span>Zurück zur Liste</span>
+      </Link>
+    </div>
+    
+    <div className="flex items-center space-x-4">
+      <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+        <PlusIcon className="h-6 w-6 text-white" />
+      </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Neues Wartungsteil erstellen</h1>
+        <p className="text-gray-600 mt-2 text-lg">Ersatz- & Verschleißteile hinzufügen</p>
+      </div>
+    </div>
+  </div>
+);
+
+// Clean Action Buttons Component
+const ActionButtons = ({ onReset, isSaving, isFormValid }: {
+  onReset: () => void;
+  isSaving: boolean;
+  isFormValid: boolean;
+}) => (
+  <div className="hidden xl:flex items-center justify-end space-x-3 mb-8">
+    <Link
+      to="/parts"
+      className="px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
+    >
+      Abbrechen
+    </Link>
+    
+    <button
+      type="button"
+      onClick={onReset}
+      className="px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
+    >
+      Zurücksetzen
+    </button>
+    
+    <button
+      type="submit"
+      form="create-part-form"
+      disabled={isSaving || !isFormValid}
+      className="inline-flex items-center px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+    >
+      {isSaving ? (
+        <>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+          Wird erstellt...
+        </>
+      ) : (
+        <>
+          <CheckIcon className="h-4 w-4 mr-2" />
+          Wartungsteil erstellen
+        </>
+      )}
+    </button>
+  </div>
+);
+
+// Professional Info Banner Component
+const InfoBanner = () => (
+  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
+    <div className="flex items-center space-x-3">
+      <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
+        <span className="text-blue-600 text-xs font-bold">i</span>
+      </div>
+      <span className="text-sm font-medium text-blue-900">
+        Alle Pflichtfelder (*) müssen ausgefüllt werden
+      </span>
+    </div>
+  </div>
+);
+
+// Clean Form Fields Component
+const FormFields = ({ formData, onChange }: {
+  formData: FormData;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+}) => (
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow p-8">
+    <div className="flex items-center space-x-3 mb-8">
+      <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+        <WrenchScrewdriverIcon className="h-5 w-5 text-blue-600" />
+      </div>
+      <h2 className="text-xl font-semibold text-gray-900">Grunddaten</h2>
+    </div>
+    
+    <div className="space-y-8">
+      {/* Row 1: Teilenummer & Kategorie */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <InputField
+          label="Teilenummer *"
+          name="partNumber"
+          value={formData.partNumber}
+          onChange={onChange}
+          placeholder="z.B. DDR5$ oder A-12345"
+          required
+        />
+        <SelectField
+          label="Kategorie *"
+          name="category"
+          value={formData.category}
+          onChange={onChange}
+          options={Object.entries(CATEGORY_LABELS)}
+          required
+        />
+      </div>
+
+      {/* Row 2: Name */}
+      <InputField
+        label="Name *"
+        name="name"
+        value={formData.name}
+        onChange={onChange}
+        placeholder="z.B. Hydraulikzylinder"
+        required
+      />
+
+      {/* Row 3: Preis & Lagerbestand */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <InputField
+          label="Preis (€) *"
+          name="price"
+          type="number"
+          value={formData.price}
+          onChange={onChange}
+          step="0.01"
+          min="0.01"
+          required
+        />
+        <InputField
+          label="Lagerbestand (Stück) *"
+          name="stockQuantity"
+          type="number"
+          value={formData.stockQuantity}
+          onChange={onChange}
+          min="0"
+          required
+        />
+      </div>
+
+      {/* Row 4: Hersteller */}
+      <InputField
+        label="Hersteller"
+        name="manufacturer"
+        value={formData.manufacturer}
+        onChange={onChange}
+        placeholder="z.B. Bosch, Siemens"
+      />
+
+      {/* Row 5: Beschreibung */}
+      <TextAreaField
+        label="Beschreibung"
+        name="description"
+        value={formData.description}
+        onChange={onChange}
+        placeholder="Detaillierte Beschreibung des Wartungsteils..."
+        rows={4}
+      />
+    </div>
+  </div>
+);
+
+// Reusable Input Field
+const InputField = ({ label, name, value, onChange, type = "text", placeholder, required, step, min }: {
+  label: string;
+  name: string;
+  value: string | number;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  step?: string;
+  min?: string;
+}) => (
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      required={required}
+      step={step}
+      min={min}
+      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+    />
+  </div>
+);
+
+// Reusable Select Field
+const SelectField = ({ label, name, value, onChange, options, required }: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: [string, string][];
+  required?: boolean;
+}) => (
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
+    <select
+      name={name}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+    >
+      {options.map(([key, label]) => (
+        <option key={key} value={key}>{label}</option>
+      ))}
+    </select>
+  </div>
+);
+
+// Reusable TextArea Field
+const TextAreaField = ({ label, name, value, onChange, placeholder, rows }: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+  rows?: number;
+}) => (
+  <div>
+    <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      rows={rows}
+      placeholder={placeholder}
+      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none transition-all hover:border-gray-300"
+    />
+  </div>
+);
+
+// Clean Error Display Component
+const ErrorDisplay = ({ saveError, validationErrors }: {
+  saveError: string | null;
+  validationErrors: string[];
+}) => {
+  if (!saveError && validationErrors.length === 0) return null;
+
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mt-8">
+      <div className="flex items-start space-x-4">
+        <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+          <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+        </div>
+        <div className="flex-1">
+          {saveError && (
+            <p className="text-red-800 font-semibold mb-3">{saveError}</p>
+          )}
+          {validationErrors.length > 0 && (
+            <div>
+              <p className="text-red-800 font-semibold mb-3">Bitte korrigieren Sie folgende Fehler:</p>
+              <ul className="list-disc list-inside text-red-700 space-y-1">
+                {validationErrors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Clean Live Preview Component
+const LivePreview = ({ formData, isFormValid }: {
+  formData: FormData;
+  isFormValid: boolean;
+}) => (
+  <div className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 xl:sticky xl:top-8">
+    <div className="flex items-center space-x-3 mb-8 pb-6 border-b border-gray-100">
+      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+        <EyeIcon className="h-5 w-5 text-gray-600" />
+      </div>
+      <h3 className="text-xl font-semibold text-gray-900">Vorschau</h3>
+    </div>
+    
+    <div className="space-y-6">
+      <PreviewField 
+        label="Teilenummer"
+        value={formData.partNumber}
+        className="text-lg font-bold"
+      />
+      <PreviewField 
+        label="Name"
+        value={formData.name}
+        className="text-lg font-semibold"
+      />
+      <div>
+        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Kategorie</div>
+        <span className="inline-flex px-4 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-800 border border-gray-200">
+          {CATEGORY_LABELS[formData.category]}
+        </span>
+      </div>
+      <div>
+        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Preis</div>
+        <div className="text-3xl font-bold text-gray-900">
+          {formData.price.toFixed(2)} €
+        </div>
+      </div>
+      <PreviewField 
+        label="Lagerbestand"
+        value={`${formData.stockQuantity} Stück`}
+        className="text-lg font-semibold"
+      />
+      {formData.manufacturer && (
+        <PreviewField 
+          label="Hersteller"
+          value={formData.manufacturer}
+          className="text-lg font-semibold"
+        />
+      )}
+    </div>
+
+    <div className="mt-8 pt-6 border-t border-gray-100">
+      <div className="flex items-center space-x-3">
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+          isFormValid 
+            ? 'bg-emerald-100 text-emerald-600' 
+            : 'bg-amber-100 text-amber-600'
+        }`}>
+          {isFormValid ? (
+            <CheckIcon className="h-4 w-4" />
+          ) : (
+            <ExclamationTriangleIcon className="h-4 w-4" />
+          )}
+        </div>
+        <span className={`text-sm font-medium ${
+          isFormValid ? 'text-emerald-700' : 'text-amber-700'
+        }`}>
+          {isFormValid ? 'Bereit zum Erstellen' : 'Pflichtfelder fehlen'}
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+// Preview Field Helper
+const PreviewField = ({ label, value, className }: {
+  label: string;
+  value: string | number;
+  className?: string;
+}) => (
+  <div>
+    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{label}</div>
+    <div className={`text-gray-900 break-words ${className || ''}`}>
+      {value || <span className="text-gray-400 italic font-normal">Noch nicht eingegeben</span>}
+    </div>
+  </div>
+);
+
+// Clean Mobile Actions Component
+const MobileActions = ({ isSaving, isFormValid }: {
+  isSaving: boolean;
+  isFormValid: boolean;
+}) => (
+  <>
+    <div className="xl:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-2xl">
+      <div className="flex gap-3 max-w-md mx-auto">
+        <Link
+          to="/parts"
+          className="flex-1 px-4 py-3 text-center text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+        >
+          Abbrechen
+        </Link>
+        <button
+          type="submit"
+          form="create-part-form"
+          disabled={isSaving || !isFormValid}
+          className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-medium rounded-xl transition-all disabled:cursor-not-allowed shadow-sm"
+        >
+          {isSaving ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Erstellen...
+            </>
+          ) : (
+            <>
+              <CheckIcon className="h-4 w-4 mr-2" />
+              Erstellen
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+    <div className="xl:hidden h-20"></div>
+  </>
+);
 
 export default MaintenancePartCreate;
