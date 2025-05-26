@@ -1,4 +1,4 @@
-// src/pages/machines/MachineList.tsx - Mit PDF-Upload Integration
+// src/pages/machines/MachineList.tsx - Vereinfachte UX mit 2-Button-Design
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
@@ -92,19 +92,19 @@ const MachineList = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header mit erweiterten Aktionen */}
+      {/* Header mit vereinfachten Aktionen */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Maschinen</h1>
           <p className="text-gray-600 mt-1">CNC-Lademagazine verwalten und überwachen</p>
         </div>
         
-        {/* Button-Gruppe mit PDF-Upload */}
+        {/* 🎯 VEREINFACHTE 2-BUTTON UX */}
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* PDF-Upload Button - Prominenter platziert */}
+          {/* 🟢 Haupt-CTA: PDF hochladen (für normale Benutzer) */}
           <Link 
             to="/machines/upload"
-            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg group"
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all hover:shadow-lg group"
           >
             <div className="flex items-center space-x-2">
               <SparklesIcon className="h-5 w-5 group-hover:animate-pulse" />
@@ -116,23 +116,48 @@ const MachineList = () => {
             </div>
           </Link>
           
-          {/* Enterprise Multi-Upload Button */}
-          <Link 
-            to="/machines/enterprise-upload"
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg flex items-center space-x-2"
-          >
-            <span>🏭 Enterprise Multi-Upload</span>
-          </Link>
-          
-          {/* Manuell erstellen Button */}
-          <button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg border-2 border-transparent hover:border-blue-300">
-            <PlusIcon className="h-5 w-5" />
-            <span>Manuell erstellen</span>
-          </button>
+          {/* 🔵 Neue Maschine Dropdown */}
+          <div className="relative group">
+            <button className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg border-2 border-transparent hover:border-blue-300">
+              <PlusIcon className="h-5 w-5" />
+              <span>Neue Maschine</span>
+              <svg className="h-4 w-4 ml-1 transform group-hover:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="py-2">
+                <button className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <PlusIcon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">Manuell erstellen</div>
+                    <div className="text-sm text-gray-500">Einzelne Maschine mit Formular</div>
+                  </div>
+                </button>
+                
+                <Link 
+                  to="/machines/enterprise-upload"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center space-x-3"
+                >
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <span className="text-purple-600 text-sm">🏭</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">Enterprise Multi-Upload</div>
+                    <div className="text-sm text-gray-500">Bis zu 50+ Werkstattaufträge</div>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Info-Banner für PDF-Upload */}
+      {/* Optimiertes Info-Banner für PDF-Upload */}
       <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
@@ -143,7 +168,7 @@ const MachineList = () => {
               🤖 Intelligente Maschinenerstellung
             </h3>
             <p className="text-sm text-green-700 mt-1">
-              Laden Sie Ihren Werkstattauftrag (PDF) hoch und lassen Sie die KI automatisch alle Maschinendaten extrahieren und eine neue Maschine erstellen.
+              Laden Sie Ihren Werkstattauftrag (PDF) hoch und lassen Sie die KI automatisch alle Maschinendaten extrahieren.
             </p>
           </div>
           <div className="flex-shrink-0">
