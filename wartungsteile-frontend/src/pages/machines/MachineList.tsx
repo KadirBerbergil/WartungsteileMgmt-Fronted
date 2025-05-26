@@ -18,10 +18,9 @@ import {
   ListBulletIcon,
   DocumentArrowUpIcon,
   SparklesIcon,
-  BoltIcon,
   ChartBarIcon,
   CalendarDaysIcon,
-  TrendingUpIcon,
+  ArrowTrendingUpIcon,
   SignalIcon
 } from '@heroicons/react/24/outline';
 
@@ -191,7 +190,7 @@ const MachineList = () => {
                 <CogIcon className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center space-x-1 text-blue-600">
-                <TrendingUpIcon className="h-4 w-4" />
+                <ArrowTrendingUpIcon className="h-4 w-4" />
                 <span className="text-xs font-semibold">+2%</span>
               </div>
             </div>

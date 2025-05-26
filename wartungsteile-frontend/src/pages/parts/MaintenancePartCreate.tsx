@@ -29,11 +29,13 @@ interface FormData {
 }
 
 const CATEGORY_OPTIONS = [
-  { value: 'WearPart', label: 'Verschleißteil', icon: '⚡', gradient: 'from-red-500 to-red-600', color: 'text-red-600' },
-  { value: 'SparePart', label: 'Ersatzteil', icon: '🔧', gradient: 'from-blue-500 to-blue-600', color: 'text-blue-600' },
-  { value: 'ConsumablePart', label: 'Verbrauchsmaterial', icon: '📦', gradient: 'from-amber-500 to-amber-600', color: 'text-amber-600' },
-  { value: 'ToolPart', label: 'Werkzeug', icon: '🛠️', gradient: 'from-emerald-500 to-emerald-600', color: 'text-emerald-600' }
-] as const;
+  { value: 'WearPart' as const, label: 'Verschleißteil', icon: '⚡', gradient: 'from-red-500 to-red-600', color: 'text-red-600' },
+  { value: 'SparePart' as const, label: 'Ersatzteil', icon: '🔧', gradient: 'from-blue-500 to-blue-600', color: 'text-blue-600' },
+  { value: 'ConsumablePart' as const, label: 'Verbrauchsmaterial', icon: '📦', gradient: 'from-amber-500 to-amber-600', color: 'text-amber-600' },
+  { value: 'ToolPart' as const, label: 'Werkzeug', icon: '🛠️', gradient: 'from-emerald-500 to-emerald-600', color: 'text-emerald-600' }
+];
+
+type CategoryOption = typeof CATEGORY_OPTIONS[number];
 
 const MaintenancePartCreate = () => {
   const navigate = useNavigate();
@@ -140,7 +142,7 @@ const MaintenancePartCreate = () => {
     setValidationErrors([]);
   };
 
-  const isFormValid = formData.partNumber.trim() !== '' && formData.name.trim() !== '' && formData.price > 0;
+  const isFormValid = Boolean(formData.partNumber.trim() && formData.name.trim() && formData.price > 0);
   const selectedCategoryConfig = CATEGORY_OPTIONS.find(opt => opt.value === formData.category);
 
   return (
@@ -510,7 +512,7 @@ const ErrorDisplay = ({ saveError, validationErrors }: {
 const LivePreview = ({ formData, isFormValid, selectedCategoryConfig }: {
   formData: FormData;
   isFormValid: boolean;
-  selectedCategoryConfig: typeof CATEGORY_OPTIONS[0] | undefined;
+  selectedCategoryConfig: CategoryOption | undefined;
 }) => (
   <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl shadow-sm xl:sticky xl:top-8">
     <div className="bg-gradient-to-r from-slate-50/50 to-transparent px-6 py-4 border-b border-slate-200/60">

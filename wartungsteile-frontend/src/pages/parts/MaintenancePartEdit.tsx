@@ -16,8 +16,7 @@ import {
   BanknotesIcon,
   BuildingOffice2Icon,
   InformationCircleIcon,
-  CubeIcon,
-  ClockIcon
+  CubeIcon
 } from '@heroicons/react/24/outline';
 
 interface FormData {
@@ -30,11 +29,13 @@ interface FormData {
 }
 
 const CATEGORY_OPTIONS = [
-  { value: 'WearPart', label: 'Verschleißteil', icon: '⚡', gradient: 'from-red-500 to-red-600', color: 'text-red-600' },
-  { value: 'SparePart', label: 'Ersatzteil', icon: '🔧', gradient: 'from-blue-500 to-blue-600', color: 'text-blue-600' },
-  { value: 'ConsumablePart', label: 'Verbrauchsmaterial', icon: '📦', gradient: 'from-amber-500 to-amber-600', color: 'text-amber-600' },
-  { value: 'ToolPart', label: 'Werkzeug', icon: '🛠️', gradient: 'from-emerald-500 to-emerald-600', color: 'text-emerald-600' }
-] as const;
+  { value: 'WearPart' as const, label: 'Verschleißteil', icon: '⚡', gradient: 'from-red-500 to-red-600', color: 'text-red-600' },
+  { value: 'SparePart' as const, label: 'Ersatzteil', icon: '🔧', gradient: 'from-blue-500 to-blue-600', color: 'text-blue-600' },
+  { value: 'ConsumablePart' as const, label: 'Verbrauchsmaterial', icon: '📦', gradient: 'from-amber-500 to-amber-600', color: 'text-amber-600' },
+  { value: 'ToolPart' as const, label: 'Werkzeug', icon: '🛠️', gradient: 'from-emerald-500 to-emerald-600', color: 'text-emerald-600' }
+];
+
+type CategoryOption = typeof CATEGORY_OPTIONS[number];
 
 const MaintenancePartEdit = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,7 +64,7 @@ const MaintenancePartEdit = () => {
       const data: FormData = {
         name: part.name,
         description: part.description || '',
-        category: part.category,
+        category: part.category as 'WearPart' | 'SparePart' | 'ConsumablePart' | 'ToolPart',
         price: part.price,
         manufacturer: part.manufacturer || '',
         stockQuantity: part.stockQuantity
@@ -179,7 +180,7 @@ const MaintenancePartEdit = () => {
       const data: FormData = {
         name: part.name,
         description: part.description || '',
-        category: part.category,
+        category: part.category as 'WearPart' | 'SparePart' | 'ConsumablePart' | 'ToolPart',
         price: part.price,
         manufacturer: part.manufacturer || '',
         stockQuantity: part.stockQuantity
@@ -246,7 +247,7 @@ const MaintenancePartEdit = () => {
     );
   }
 
-  const isFormValid = formData.name.trim() && formData.price > 0;
+  const isFormValid = Boolean(formData.name.trim() && formData.price > 0);
   const selectedCategoryConfig = CATEGORY_OPTIONS.find(opt => opt.value === formData.category);
 
   return (
@@ -613,7 +614,7 @@ const LivePreview = ({ part, formData, originalData, hasUnsavedChanges, selected
   formData: FormData;
   originalData: FormData;
   hasUnsavedChanges: boolean;
-  selectedCategoryConfig: typeof CATEGORY_OPTIONS[0] | undefined;
+  selectedCategoryConfig: CategoryOption | undefined;
 }) => (
   <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl shadow-sm xl:sticky xl:top-8">
     <div className="bg-gradient-to-r from-slate-50/50 to-transparent px-6 py-4 border-b border-slate-200/60">

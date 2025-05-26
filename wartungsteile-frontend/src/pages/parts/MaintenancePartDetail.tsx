@@ -7,8 +7,8 @@ import {
   PencilIcon,
   ArrowLeftIcon,
   CubeIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   ShoppingCartIcon,
   ClockIcon,
   ChartBarIcon,
@@ -236,7 +236,7 @@ const MaintenancePartDetail = () => {
                 <BanknotesIcon className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center space-x-1 text-blue-600">
-                <TrendingUpIcon className="h-4 w-4" />
+                <ArrowTrendingUpIcon className="h-4 w-4" />
                 <span className="text-xs font-semibold">Stabil</span>
               </div>
             </div>
@@ -252,11 +252,11 @@ const MaintenancePartDetail = () => {
               </div>
               <div className={`flex items-center space-x-1 ${stockConfig.text}`}>
                 {stockConfig.trend === 'critical' ? (
-                  <TrendingDownIcon className="h-4 w-4" />
+                  <ArrowTrendingDownIcon className="h-4 w-4" />
                 ) : stockConfig.trend === 'warning' ? (
                   <ExclamationTriangleIcon className="h-4 w-4" />
                 ) : (
-                  <TrendingUpIcon className="h-4 w-4" />
+                  <ArrowTrendingUpIcon className="h-4 w-4" />
                 )}
                 <span className="text-xs font-semibold">{stockConfig.status}</span>
               </div>
@@ -272,7 +272,7 @@ const MaintenancePartDetail = () => {
                 <ChartBarIcon className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center space-x-1 text-purple-600">
-                <TrendingUpIcon className="h-4 w-4" />
+                <ArrowTrendingUpIcon className="h-4 w-4" />
                 <span className="text-xs font-semibold">+12%</span>
               </div>
             </div>

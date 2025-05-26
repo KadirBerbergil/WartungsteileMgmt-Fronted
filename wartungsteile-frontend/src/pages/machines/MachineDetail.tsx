@@ -17,12 +17,10 @@ import {
   PencilIcon,
   PlayIcon,
   InformationCircleIcon,
-  BoltIcon,
   CubeIcon,
   DocumentTextIcon,
   SparklesIcon,
-  TrendingUpIcon,
-  SignalIcon,
+  ArrowTrendingUpIcon,
   BuildingOffice2Icon,
   UserIcon
 } from '@heroicons/react/24/outline';
@@ -377,7 +375,7 @@ const MetricCard = ({ title, value, subtitle, icon: Icon, iconColor, gradient, t
       </div>
       {trend && (
         <div className={`flex items-center space-x-1 ${trendUp ? 'text-emerald-600' : 'text-red-600'}`}>
-          <TrendingUpIcon className={`h-4 w-4 ${trendUp ? '' : 'rotate-180'}`} />
+          <ArrowTrendingUpIcon className={`h-4 w-4 ${trendUp ? '' : 'rotate-180'}`} />
           <span className="text-xs font-semibold">{trend}</span>
         </div>
       )}

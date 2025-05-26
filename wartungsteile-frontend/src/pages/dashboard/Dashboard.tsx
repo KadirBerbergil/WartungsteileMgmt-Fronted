@@ -17,8 +17,8 @@ import {
   XCircleIcon,
   Bars3Icon,
   ArrowPathIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   EyeIcon,
   BoltIcon,
   ChartBarIcon
@@ -418,7 +418,7 @@ const Dashboard = () => {
                     <CheckCircleIcon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex items-center space-x-1 text-emerald-600">
-                    <TrendingUpIcon className="h-4 w-4" />
+                    <ArrowTrendingUpIcon className="h-4 w-4" />
                     <span className="text-xs font-semibold">+8%</span>
                   </div>
                 </div>
@@ -441,7 +441,7 @@ const Dashboard = () => {
                     <ExclamationTriangleIcon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex items-center space-x-1 text-amber-600">
-                    <TrendingUpIcon className="h-4 w-4" />
+                    <ArrowTrendingUpIcon className="h-4 w-4" />
                     <span className="text-xs font-semibold">+12%</span>
                   </div>
                 </div>
@@ -464,7 +464,7 @@ const Dashboard = () => {
                     <WrenchScrewdriverIcon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex items-center space-x-1 text-red-600">
-                    <TrendingDownIcon className="h-4 w-4" />
+                    <ArrowTrendingDownIcon className="h-4 w-4" />
                     <span className="text-xs font-semibold">-3%</span>
                   </div>
                 </div>
@@ -487,7 +487,7 @@ const Dashboard = () => {
                     <CubeIcon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex items-center space-x-1 text-purple-600">
-                    <TrendingUpIcon className="h-4 w-4" />
+                    <ArrowTrendingUpIcon className="h-4 w-4" />
                     <span className="text-xs font-semibold">+5%</span>
                   </div>
                 </div>
