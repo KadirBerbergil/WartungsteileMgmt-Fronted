@@ -307,7 +307,6 @@ const MetricsCards = ({ machine, metrics }: { machine: any; metrics: any }) => (
       value={`${machine.operatingHours.toLocaleString()} h`}
       subtitle={metrics ? `Ø ${metrics.avgHoursPerYear} h/Jahr` : ''}
       icon={ClockIcon}
-      iconColor="text-blue-600"
       gradient="from-blue-500 to-blue-600"
       trend="+12%"
       trendUp={true}
@@ -318,7 +317,6 @@ const MetricsCards = ({ machine, metrics }: { machine: any; metrics: any }) => (
       value={`${metrics?.ageInYears || 0} Jahre`}
       subtitle={`Seit ${new Date(machine.installationDate).toLocaleDateString('de-DE')}`}
       icon={CalendarDaysIcon}
-      iconColor="text-purple-600"
       gradient="from-purple-500 to-purple-600"
     />
     
@@ -330,10 +328,6 @@ const MetricsCards = ({ machine, metrics }: { machine: any; metrics: any }) => (
         : 'Keine Wartung dokumentiert'
       }
       icon={WrenchScrewdriverIcon}
-      iconColor={
-        metrics?.maintenanceUrgency === 'critical' ? 'text-red-600' :
-        metrics?.maintenanceUrgency === 'high' ? 'text-amber-600' : 'text-emerald-600'
-      }
       gradient={
         metrics?.maintenanceUrgency === 'critical' ? 'from-red-500 to-red-600' :
         metrics?.maintenanceUrgency === 'high' ? 'from-amber-500 to-amber-600' : 'from-emerald-500 to-emerald-600'
@@ -346,7 +340,6 @@ const MetricsCards = ({ machine, metrics }: { machine: any; metrics: any }) => (
       value="87%"
       subtitle="Gesamtbewertung"
       icon={ChartBarIcon}
-      iconColor="text-indigo-600"
       gradient="from-indigo-500 to-indigo-600"
       trend="+5%"
       trendUp={true}
@@ -355,12 +348,11 @@ const MetricsCards = ({ machine, metrics }: { machine: any; metrics: any }) => (
 );
 
 // Reusable Metric Card Component
-const MetricCard = ({ title, value, subtitle, icon: Icon, iconColor, gradient, trend, trendUp, alert }: {
+const MetricCard = ({ title, value, subtitle, icon: Icon, gradient, trend, trendUp, alert }: {
   title: string;
   value: string;
   subtitle: string;
   icon: React.ComponentType<React.ComponentProps<'svg'>>;
-  iconColor: string;
   gradient: string;
   trend?: string;
   trendUp?: boolean;

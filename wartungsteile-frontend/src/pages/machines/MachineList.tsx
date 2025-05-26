@@ -19,7 +19,6 @@ import {
   DocumentArrowUpIcon,
   SparklesIcon,
   ChartBarIcon,
-  CalendarDaysIcon,
   ArrowTrendingUpIcon,
   SignalIcon
 } from '@heroicons/react/24/outline';

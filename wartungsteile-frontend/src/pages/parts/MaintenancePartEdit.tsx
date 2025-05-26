@@ -9,13 +9,10 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
   PencilIcon,
-  EyeIcon,
-  SparklesIcon,
   DocumentTextIcon,
   TagIcon,
   BanknotesIcon,
   BuildingOffice2Icon,
-  InformationCircleIcon,
   CubeIcon
 } from '@heroicons/react/24/outline';
 
