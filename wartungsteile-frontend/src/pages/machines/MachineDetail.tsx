@@ -1,4 +1,4 @@
-// src/pages/machines/MachineDetail.tsx - Mit erweiterten Magazin-Eigenschaften
+// src/pages/machines/MachineDetail.tsx - Mit behobenen Imports
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMachineDetail } from '../../hooks/useMachines';
@@ -8,14 +8,12 @@ import {
   CogIcon,
   ArrowLeftIcon,
   ChartBarIcon,
-  DocumentArrowUpIcon,
   SparklesIcon,
   ClockIcon,
   CalendarDaysIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
-  BoltIcon,
   EyeIcon,
   PencilIcon,
   PlayIcon
@@ -408,7 +406,7 @@ const MachineDetail = () => {
           {activeTab === 'magazine' && (
             <MagazinePropertiesEditor 
               machine={machine}
-              onUpdate={(updatedMachine) => {
+              onUpdate={() => {
                 // Trigger refetch to get latest data
                 refetch();
               }}

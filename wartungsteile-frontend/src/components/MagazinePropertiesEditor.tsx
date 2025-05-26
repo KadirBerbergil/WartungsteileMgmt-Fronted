@@ -1,24 +1,19 @@
-// src/components/MagazinePropertiesEditor.tsx - Umfassender Editor für alle 29+ Magazin-Eigenschaften
+// src/components/MagazinePropertiesEditor.tsx - Fehlerbehebungen
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { machineService } from '../services';
 import type { 
-  Machine, 
   MachineDetail, 
-  UpdateMagazinePropertiesCommand,
-  MagazinePropertiesGroups 
+  UpdateMagazinePropertiesCommand
 } from '../types/api';
 import { 
   CheckIcon,
   ExclamationTriangleIcon,
   PencilIcon,
-  DocumentArrowUpIcon,
   ChartBarIcon,
-  XMarkIcon,
-  SparklesIcon,
   CogIcon,
   UserIcon,
-  ColorSwatchIcon,
+  SwatchIcon, // ✅ Korrekt: SwatchIcon statt ColorSwatchIcon
   DocumentTextIcon,
   WrenchScrewdriverIcon,
   BoltIcon,
@@ -214,7 +209,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     basic: {
       title: 'Basis-Eigenschaften',
       icon: CogIcon,
-      color: 'blue',
+      color: 'blue' as const,
       fields: [
         { key: 'magazineType', label: 'Magazin-Typ', type: 'text', placeholder: 'z.B. minimag 20 S1' },
         { key: 'materialBarLength', label: 'Materialstangenlänge (mm)', type: 'number', min: 0, max: 10000 },
@@ -226,7 +221,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     customer: {
       title: 'Kundendaten',
       icon: UserIcon,
-      color: 'green',
+      color: 'green' as const,
       fields: [
         { key: 'customerName', label: 'Kundenname', type: 'text', placeholder: 'z.B. Citizen' },
         { key: 'customerNumber', label: 'Kundennummer', type: 'text', placeholder: 'z.B. 803023' },
@@ -236,7 +231,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     production: {
       title: 'Produktionsdaten',
       icon: ClockIcon,
-      color: 'purple',
+      color: 'purple' as const,
       fields: [
         { key: 'productionWeek', label: 'Produktionswoche', type: 'text', placeholder: 'z.B. 49/2018' },
         { key: 'buildVariant', label: 'Bauvariante', type: 'text', placeholder: 'z.B. C' },
@@ -245,8 +240,8 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     },
     colors: {
       title: 'Farben',
-      icon: ColorSwatchIcon,
-      color: 'pink',
+      icon: SwatchIcon, // ✅ Korrekt: SwatchIcon verwenden
+      color: 'pink' as const,
       fields: [
         { key: 'baseColor', label: 'Grundfarbe', type: 'text', placeholder: 'z.B. Munsell Gray Color' },
         { key: 'coverColor', label: 'Abdeckungsfarbe', type: 'text', placeholder: 'z.B. Munsell White Color' },
@@ -257,7 +252,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     documentation: {
       title: 'Dokumentation',
       icon: DocumentTextIcon,
-      color: 'yellow',
+      color: 'yellow' as const,
       fields: [
         { 
           key: 'documentationLanguage', 
@@ -271,7 +266,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     lathe: {
       title: 'Drehmaschine',
       icon: WrenchScrewdriverIcon,
-      color: 'orange',
+      color: 'orange' as const,
       fields: [
         { key: 'latheManufacturer', label: 'Drehmaschinen-Hersteller', type: 'text', placeholder: 'z.B. Citizen' },
         { key: 'latheType', label: 'Drehmaschinentyp', type: 'text', placeholder: 'z.B. L 20 E M8;M10;M12 (L 220)' },
@@ -283,7 +278,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     electrical: {
       title: 'Elektrische Daten',
       icon: BoltIcon,
-      color: 'red',
+      color: 'red' as const,
       fields: [
         { key: 'magazineNumber', label: 'Magazin-Nummer', type: 'text', placeholder: 'z.B. 48' },
         { key: 'positionNumber', label: 'Positionsnummer', type: 'text', placeholder: 'z.B. 1' },
@@ -297,7 +292,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     article: {
       title: 'Artikel',
       icon: CubeIcon,
-      color: 'indigo',
+      color: 'indigo' as const,
       fields: [
         { key: 'articleNumber', label: 'Artikelnummer', type: 'text', placeholder: 'z.B. 048-32-1541-01BC' }
       ]
@@ -435,13 +430,13 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     }
 
     return (
-      <div key={groupKey} className={`border rounded-xl ${colorClasses[group.color as keyof typeof colorClasses]} overflow-hidden`}>
+      <div key={groupKey} className={`border rounded-xl ${colorClasses[group.color]} overflow-hidden`}>
         <button
           onClick={() => toggleGroup(groupKey)}
           className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/50 transition-colors"
         >
           <div className="flex items-center space-x-3">
-            <GroupIcon className={`h-5 w-5 ${iconClasses[group.color as keyof typeof iconClasses]}`} />
+            <GroupIcon className={`h-5 w-5 ${iconClasses[group.color]}`} />
             <span className="font-semibold text-gray-800">{group.title}</span>
             <span className="text-sm text-gray-500">
               ({filledFields.length}/{group.fields.length})
