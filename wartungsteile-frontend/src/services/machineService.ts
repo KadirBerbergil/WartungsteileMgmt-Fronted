@@ -1,4 +1,4 @@
-// src/services/machineService.ts - Erweitert mit allen Magazin-Eigenschaften APIs
+// src/services/machineService.ts - Null-Safety Fixes für TypeScript
 import { api } from './api';
 import type { 
   Machine, 
@@ -85,10 +85,12 @@ export const machineService = {
     try {
       const response = await api.put(`/Machines/${machineId}/magazine`, properties);
       
-      // Backend könnte Vollständigkeits-Info zurückgeben
+      // ✅ Null-Safety: response.data könnte undefined sein
+      const responseData = response.data ?? {};
+      
       const result = {
         success: response.status === 200,
-        completeness: response.data?.completeness || undefined
+        completeness: responseData?.completeness ?? undefined
       };
       
       console.log('✅ Magazin-Eigenschaften erfolgreich aktualisiert:', result);
@@ -118,10 +120,13 @@ export const machineService = {
     try {
       const response = await api.post(`/Machines/${machineId}/magazine/from-pdf`, extractedData);
       
+      // ✅ Null-Safety: response.data könnte undefined sein
+      const responseData = response.data ?? {};
+      
       const result = {
         success: response.status === 200,
-        fieldsSet: response.data?.fieldsSet || 0,
-        completeness: response.data?.completeness || undefined
+        fieldsSet: responseData?.fieldsSet ?? 0,
+        completeness: responseData?.completeness ?? undefined
       };
       
       console.log('✅ PDF-Import erfolgreich:', result);
@@ -151,8 +156,9 @@ export const machineService = {
     } catch (error: any) {
       // Fallback: Wenn Endpoint nicht existiert, aus Machine-Daten berechnen
       console.warn('⚠️ Completeness-Endpoint nicht verfügbar, berechne client-seitig');
-      const machine = await this.getById(machineId);
-      return this.calculateCompletenessClientSide(machine);
+      const self = machineService;
+      const machine = await self.getById(machineId);
+      return self.calculateCompletenessClientSide(machine);
     }
   },
 
@@ -243,10 +249,10 @@ export const machineService = {
     for (const { machineData, magazineProperties } of machines) {
       try {
         // 1. Maschine erstellen
-        const machineId = await this.create(machineData);
+        const machineId = await machineService.create(machineData);
         
         // 2. Magazin-Eigenschaften setzen
-        await this.updateMagazineProperties(machineId, magazineProperties);
+        await machineService.updateMagazineProperties(machineId, magazineProperties);
         
         results.push({
           machineNumber: machineData.number || 'Unbekannt',

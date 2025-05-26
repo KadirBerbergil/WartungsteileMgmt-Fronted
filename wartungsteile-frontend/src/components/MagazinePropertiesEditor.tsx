@@ -1,4 +1,4 @@
-// src/components/MagazinePropertiesEditor.tsx - Fehlerbehebungen
+// src/components/MagazinePropertiesEditor.tsx - TypeScript Fehler behoben
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { machineService } from '../services';
@@ -13,7 +13,7 @@ import {
   ChartBarIcon,
   CogIcon,
   UserIcon,
-  SwatchIcon, // ✅ Korrekt: SwatchIcon statt ColorSwatchIcon
+  SwatchIcon,
   DocumentTextIcon,
   WrenchScrewdriverIcon,
   BoltIcon,
@@ -28,6 +28,31 @@ interface MagazinePropertiesEditorProps {
   onUpdate?: (updatedMachine: MachineDetail) => void;
   readonly?: boolean;
 }
+
+// ✅ Typisierte Color-Objekte zur Behebung der TypeScript-Fehler
+type ColorKey = 'blue' | 'green' | 'purple' | 'pink' | 'yellow' | 'orange' | 'red' | 'indigo';
+
+const colorClasses: Record<ColorKey, string> = {
+  blue: 'border-blue-200 bg-blue-50',
+  green: 'border-green-200 bg-green-50',
+  purple: 'border-purple-200 bg-purple-50',
+  pink: 'border-pink-200 bg-pink-50',
+  yellow: 'border-yellow-200 bg-yellow-50',
+  orange: 'border-orange-200 bg-orange-50',
+  red: 'border-red-200 bg-red-50',
+  indigo: 'border-indigo-200 bg-indigo-50'
+};
+
+const iconClasses: Record<ColorKey, string> = {
+  blue: 'text-blue-600',
+  green: 'text-green-600',
+  purple: 'text-purple-600',
+  pink: 'text-pink-600',
+  yellow: 'text-yellow-600',
+  orange: 'text-orange-600',
+  red: 'text-red-600',
+  indigo: 'text-indigo-600'
+};
 
 const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   machine,
@@ -209,7 +234,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     basic: {
       title: 'Basis-Eigenschaften',
       icon: CogIcon,
-      color: 'blue' as const,
+      color: 'blue' as ColorKey,
       fields: [
         { key: 'magazineType', label: 'Magazin-Typ', type: 'text', placeholder: 'z.B. minimag 20 S1' },
         { key: 'materialBarLength', label: 'Materialstangenlänge (mm)', type: 'number', min: 0, max: 10000 },
@@ -221,7 +246,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     customer: {
       title: 'Kundendaten',
       icon: UserIcon,
-      color: 'green' as const,
+      color: 'green' as ColorKey,
       fields: [
         { key: 'customerName', label: 'Kundenname', type: 'text', placeholder: 'z.B. Citizen' },
         { key: 'customerNumber', label: 'Kundennummer', type: 'text', placeholder: 'z.B. 803023' },
@@ -231,7 +256,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     production: {
       title: 'Produktionsdaten',
       icon: ClockIcon,
-      color: 'purple' as const,
+      color: 'purple' as ColorKey,
       fields: [
         { key: 'productionWeek', label: 'Produktionswoche', type: 'text', placeholder: 'z.B. 49/2018' },
         { key: 'buildVariant', label: 'Bauvariante', type: 'text', placeholder: 'z.B. C' },
@@ -240,8 +265,8 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     },
     colors: {
       title: 'Farben',
-      icon: SwatchIcon, // ✅ Korrekt: SwatchIcon verwenden
-      color: 'pink' as const,
+      icon: SwatchIcon,
+      color: 'pink' as ColorKey,
       fields: [
         { key: 'baseColor', label: 'Grundfarbe', type: 'text', placeholder: 'z.B. Munsell Gray Color' },
         { key: 'coverColor', label: 'Abdeckungsfarbe', type: 'text', placeholder: 'z.B. Munsell White Color' },
@@ -252,7 +277,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     documentation: {
       title: 'Dokumentation',
       icon: DocumentTextIcon,
-      color: 'yellow' as const,
+      color: 'yellow' as ColorKey,
       fields: [
         { 
           key: 'documentationLanguage', 
@@ -266,7 +291,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     lathe: {
       title: 'Drehmaschine',
       icon: WrenchScrewdriverIcon,
-      color: 'orange' as const,
+      color: 'orange' as ColorKey,
       fields: [
         { key: 'latheManufacturer', label: 'Drehmaschinen-Hersteller', type: 'text', placeholder: 'z.B. Citizen' },
         { key: 'latheType', label: 'Drehmaschinentyp', type: 'text', placeholder: 'z.B. L 20 E M8;M10;M12 (L 220)' },
@@ -278,7 +303,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     electrical: {
       title: 'Elektrische Daten',
       icon: BoltIcon,
-      color: 'red' as const,
+      color: 'red' as ColorKey,
       fields: [
         { key: 'magazineNumber', label: 'Magazin-Nummer', type: 'text', placeholder: 'z.B. 48' },
         { key: 'positionNumber', label: 'Positionsnummer', type: 'text', placeholder: 'z.B. 1' },
@@ -292,7 +317,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     article: {
       title: 'Artikel',
       icon: CubeIcon,
-      color: 'indigo' as const,
+      color: 'indigo' as ColorKey,
       fields: [
         { key: 'articleNumber', label: 'Artikelnummer', type: 'text', placeholder: 'z.B. 048-32-1541-01BC' }
       ]
@@ -300,7 +325,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   };
 
   // Render field based on type
-  const renderField = (field: any, groupColor: string) => {
+  const renderField = (field: any) => {
     const value = formData[field.key as keyof UpdateMagazinePropertiesCommand];
     const isEmpty = !value || (typeof value === 'string' && value.trim() === '') || value === 0;
     
@@ -390,27 +415,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   const renderGroup = (groupKey: string, group: any) => {
     const isExpanded = expandedGroups.has(groupKey);
     const GroupIcon = group.icon;
-    const colorClasses = {
-      blue: 'border-blue-200 bg-blue-50',
-      green: 'border-green-200 bg-green-50',
-      purple: 'border-purple-200 bg-purple-50',
-      pink: 'border-pink-200 bg-pink-50',
-      yellow: 'border-yellow-200 bg-yellow-50',
-      orange: 'border-orange-200 bg-orange-50',
-      red: 'border-red-200 bg-red-50',
-      indigo: 'border-indigo-200 bg-indigo-50'
-    };
-
-    const iconClasses = {
-      blue: 'text-blue-600',
-      green: 'text-green-600',
-      purple: 'text-purple-600',
-      pink: 'text-pink-600',
-      yellow: 'text-yellow-600',
-      orange: 'text-orange-600',
-      red: 'text-red-600',
-      indigo: 'text-indigo-600'
-    };
+    
+    // ✅ Typsichere Zugriffe auf die Color-Objekte mit Fallback
+    const borderColorClass = colorClasses[group.color as ColorKey] || colorClasses.blue;
+    const iconColorClass = iconClasses[group.color as ColorKey] || iconClasses.blue;
 
     // Count filled fields in this group
     const filledFields = group.fields.filter((field: any) => {
@@ -430,13 +438,13 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     }
 
     return (
-      <div key={groupKey} className={`border rounded-xl ${colorClasses[group.color]} overflow-hidden`}>
+      <div key={groupKey} className={`border rounded-xl ${borderColorClass} overflow-hidden`}>
         <button
           onClick={() => toggleGroup(groupKey)}
           className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/50 transition-colors"
         >
           <div className="flex items-center space-x-3">
-            <GroupIcon className={`h-5 w-5 ${iconClasses[group.color]}`} />
+            <GroupIcon className={`h-5 w-5 ${iconColorClass}`} />
             <span className="font-semibold text-gray-800">{group.title}</span>
             <span className="text-sm text-gray-500">
               ({filledFields.length}/{group.fields.length})
@@ -448,7 +456,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         {isExpanded && (
           <div className="px-6 pb-6 bg-white/50">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {group.fields.map((field: any) => renderField(field, group.color))}
+              {group.fields.map((field: any) => renderField(field))}
             </div>
           </div>
         )}
