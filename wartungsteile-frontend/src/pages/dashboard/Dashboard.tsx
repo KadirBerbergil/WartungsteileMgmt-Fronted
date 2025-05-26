@@ -246,12 +246,12 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        {/* Professioneller Header */}
+        {/* KORRIGIERTER HEADER - Besser strukturiert */}
         <div className="mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600 mt-1">Wartungsteile-Management-System</p>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+              <p className="text-gray-600">Wartungsteile-Management-System</p>
             </div>
             
             <div className="flex items-center space-x-3">
@@ -289,11 +289,11 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Dezenter Info-Banner im Edit-Modus */}
+        {/* Info-Banner im Edit-Modus - OHNE GRAUEN HINTERGRUND */}
         {!isLayoutLocked && (
-          <div className="bg-blue-50 border border-blue-200 p-4 mb-6">
+          <div className="bg-white border border-blue-200 p-4 mb-6 shadow-sm">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-100 flex items-center justify-center">
+              <div className="w-8 h-8 flex items-center justify-center">
                 <Bars3Icon className="h-4 w-4 text-blue-600" />
               </div>
               <div>
@@ -407,9 +407,9 @@ const Dashboard = () => {
                       data={machineStatusData}
                       cx="50%"
                       cy="50%"
-                      outerRadius="70%"
+                      outerRadius="60%"
                       dataKey="value"
-                      label={({name, value}) => `${name}: ${value}`}
+                      label={({value}) => value}
                     >
                       {machineStatusData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -467,6 +467,7 @@ const Dashboard = () => {
             </WidgetWrapper>
           </div>
 
+          {/* KORRIGIERTES LAGERBESTÄNDE-CHART - Einfachere Labels */}
           <div key="chart-stock">
             <WidgetWrapper title="Lagerbestände" dragHandle>
               {partsLoading ? (
@@ -480,9 +481,9 @@ const Dashboard = () => {
                       data={stockData}
                       cx="50%"
                       cy="50%"
-                      outerRadius="70%"
+                      outerRadius="60%"
                       dataKey="value"
-                      label={({name, value}) => `${name}: ${value}`}
+                      label={({value}) => value}
                     >
                       {stockData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -502,23 +503,25 @@ const Dashboard = () => {
             </WidgetWrapper>
           </div>
 
-          {/* Professionelle Action-Widgets */}
+          {/* KORRIGIERTE Action-Widgets - Besseres Layout */}
           <div key="action-machines">
             <WidgetWrapper>
-              <div className="bg-blue-50 p-4 h-full flex items-center border-l-4 border-blue-500">
-                <div className="flex items-start space-x-3 w-full">
-                  <div className="w-8 h-8 bg-white shadow-sm flex items-center justify-center">
-                    <CogIcon className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-sm font-medium text-gray-900 mb-1">Maschinen</h2>
-                    <p className="text-gray-600 text-xs mb-3">{machineStats.total} CNC-Lademagazine</p>
-                    <button 
-                      onClick={() => navigate('/machines')}
-                      className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm font-medium transition-colors"
-                    >
-                      <span>Zu den Maschinen</span>
-                    </button>
+              <div className="h-full flex flex-col justify-center">
+                <div className="bg-white border-l-4 border-blue-500 p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      <CogIcon className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-sm font-medium text-gray-900 mb-1">Maschinen</h2>
+                      <p className="text-gray-600 text-xs mb-3">{machineStats.total} CNC-Lademagazine</p>
+                      <button 
+                        onClick={() => navigate('/machines')}
+                        className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm font-medium transition-colors"
+                      >
+                        Zu den Maschinen
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -527,20 +530,22 @@ const Dashboard = () => {
 
           <div key="action-parts">
             <WidgetWrapper>
-              <div className="bg-amber-50 p-4 h-full flex items-center border-l-4 border-amber-500">
-                <div className="flex items-start space-x-3 w-full">
-                  <div className="w-8 h-8 bg-white shadow-sm flex items-center justify-center">
-                    <WrenchScrewdriverIcon className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-sm font-medium text-gray-900 mb-1">Wartungsteile</h2>
-                    <p className="text-gray-600 text-xs mb-3">{partStats.total} Ersatzteile</p>
-                    <button 
-                      onClick={() => navigate('/parts')}
-                      className="inline-flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 text-sm font-medium transition-colors"
-                    >
-                      <span>Zu den Wartungsteilen</span>
-                    </button>
+              <div className="h-full flex flex-col justify-center">
+                <div className="bg-white border-l-4 border-amber-500 p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      <WrenchScrewdriverIcon className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-sm font-medium text-gray-900 mb-1">Wartungsteile</h2>
+                      <p className="text-gray-600 text-xs mb-3">{partStats.total} Ersatzteile</p>
+                      <button 
+                        onClick={() => navigate('/parts')}
+                        className="inline-flex items-center bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 text-sm font-medium transition-colors"
+                      >
+                        Zu den Wartungsteilen
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -549,20 +554,22 @@ const Dashboard = () => {
 
           <div key="action-maintenance">
             <WidgetWrapper>
-              <div className="bg-green-50 p-4 h-full flex items-center border-l-4 border-green-500">
-                <div className="flex items-start space-x-3 w-full">
-                  <div className="w-8 h-8 bg-white shadow-sm flex items-center justify-center">
-                    <CalendarDaysIcon className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-sm font-medium text-gray-900 mb-1">Wartung planen</h2>
-                    <p className="text-gray-600 text-xs mb-3">{machineStats.maintenanceDue} fällig</p>
-                    <button 
-                      onClick={() => alert('Wartungsplanung wird bald verfügbar sein!')}
-                      className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm font-medium transition-colors"
-                    >
-                      <span>Neue Wartung</span>
-                    </button>
+              <div className="h-full flex flex-col justify-center">
+                <div className="bg-white border-l-4 border-green-500 p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      <CalendarDaysIcon className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-sm font-medium text-gray-900 mb-1">Wartung planen</h2>
+                      <p className="text-gray-600 text-xs mb-3">{machineStats.maintenanceDue} fällig</p>
+                      <button 
+                        onClick={() => alert('Wartungsplanung wird bald verfügbar sein!')}
+                        className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-sm font-medium transition-colors"
+                      >
+                        Neue Wartung
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -576,7 +583,7 @@ const Dashboard = () => {
                 {getRecentActivities().length > 0 ? (
                   getRecentActivities().map((activity, index) => (
                     <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="w-8 h-8 bg-white shadow-sm flex items-center justify-center">
+                      <div className="w-8 h-8 flex items-center justify-center">
                         <activity.icon className={`h-4 w-4 ${activity.color}`} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -587,7 +594,7 @@ const Dashboard = () => {
                   ))
                 ) : (
                   <div className="text-center text-gray-500 py-8">
-                    <div className="w-12 h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3">
                       <ClockIcon className="h-6 w-6 text-gray-400" />
                     </div>
                     <p className="font-medium text-sm">Noch keine Aktivitäten</p>

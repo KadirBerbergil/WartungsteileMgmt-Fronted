@@ -257,11 +257,11 @@ const ActionButtons = ({ onReset, isSaving, isFormValid }: {
   </div>
 );
 
-// Info Banner Component
+// Info Banner Component - KOMPLETT OHNE GRAUE HINTERGRÜNDE
 const InfoBanner = () => (
-  <div className="bg-blue-50 border border-blue-200 p-4 mb-6">
+  <div className="bg-white border border-blue-200 p-4 mb-6 shadow-sm">
     <div className="flex items-center space-x-3">
-      <div className="w-5 h-5 bg-blue-100 flex items-center justify-center">
+      <div className="w-5 h-5 flex items-center justify-center">
         <span className="text-blue-600 text-xs font-bold">i</span>
       </div>
       <span className="text-sm font-medium text-blue-900">
@@ -271,14 +271,14 @@ const InfoBanner = () => (
   </div>
 );
 
-// Form Fields Component
+// Form Fields Component - OHNE GRAUE HINTERGRÜNDE
 const FormFields = ({ formData, onChange }: {
   formData: FormData;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }) => (
   <div className="bg-white border border-gray-200 shadow-sm p-6">
     <div className="flex items-center space-x-3 mb-6">
-      <div className="w-8 h-8 bg-blue-100 flex items-center justify-center">
+      <div className="w-8 h-8 flex items-center justify-center">
         <WrenchScrewdriverIcon className="h-4 w-4 text-blue-600" />
       </div>
       <h2 className="text-lg font-medium text-gray-900">Grunddaten</h2>
@@ -468,14 +468,14 @@ const ErrorDisplay = ({ saveError, validationErrors }: {
   );
 };
 
-// Live Preview Component
+// Live Preview Component - OHNE GRAUE HINTERGRÜNDE
 const LivePreview = ({ formData, isFormValid }: {
   formData: FormData;
   isFormValid: boolean;
 }) => (
   <div className="bg-white border border-gray-200 shadow-sm p-6 xl:sticky xl:top-6">
     <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-200">
-      <div className="w-8 h-8 bg-gray-100 flex items-center justify-center">
+      <div className="w-8 h-8 flex items-center justify-center">
         <EyeIcon className="h-4 w-4 text-gray-600" />
       </div>
       <h3 className="text-lg font-medium text-gray-900">Vorschau</h3>
@@ -494,7 +494,7 @@ const LivePreview = ({ formData, isFormValid }: {
       />
       <div>
         <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Kategorie</div>
-        <span className="inline-flex px-3 py-1 text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">
+        <span className="inline-flex px-3 py-1 text-sm font-medium bg-blue-50 text-blue-800 border border-blue-200">
           {CATEGORY_LABELS[formData.category]}
         </span>
       </div>
