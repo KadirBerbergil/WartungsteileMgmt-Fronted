@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartCreate.tsx - Clean & Modern Design
+// src/pages/parts/MaintenancePartCreate.tsx - Professionelle B2B-Version
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -137,8 +137,8 @@ const MaintenancePartCreate = () => {
   const isFormValid = formData.partNumber.trim() !== '' && formData.name.trim() !== '' && formData.price > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Header */}
         <Header />
@@ -154,7 +154,7 @@ const MaintenancePartCreate = () => {
         <InfoBanner />
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           
           {/* Form */}
           <div className="xl:col-span-3">
@@ -189,41 +189,41 @@ const MaintenancePartCreate = () => {
   );
 };
 
-// Clean Header Component
+// Header Component
 const Header = () => (
-  <div className="mb-8">
-    <div className="flex items-center space-x-4 mb-6">
+  <div className="mb-6">
+    <div className="flex items-center space-x-4 mb-4">
       <Link 
         to="/parts"
-        className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors font-medium group"
+        className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
       >
-        <ArrowLeftIcon className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
+        <ArrowLeftIcon className="h-4 w-4" />
         <span>Zurück zur Liste</span>
       </Link>
     </div>
     
     <div className="flex items-center space-x-4">
-      <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-        <PlusIcon className="h-6 w-6 text-white" />
+      <div className="w-10 h-10 bg-green-600 flex items-center justify-center">
+        <PlusIcon className="h-5 w-5 text-white" />
       </div>
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Neues Wartungsteil erstellen</h1>
-        <p className="text-gray-600 mt-2 text-lg">Ersatz- & Verschleißteile hinzufügen</p>
+        <h1 className="text-2xl font-semibold text-gray-900">Neues Wartungsteil erstellen</h1>
+        <p className="text-gray-600 mt-1">Ersatz- & Verschleißteile hinzufügen</p>
       </div>
     </div>
   </div>
 );
 
-// Clean Action Buttons Component
+// Action Buttons Component
 const ActionButtons = ({ onReset, isSaving, isFormValid }: {
   onReset: () => void;
   isSaving: boolean;
   isFormValid: boolean;
 }) => (
-  <div className="hidden xl:flex items-center justify-end space-x-3 mb-8">
+  <div className="hidden xl:flex items-center justify-end space-x-3 mb-6">
     <Link
       to="/parts"
-      className="px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
+      className="px-4 py-2 text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-all"
     >
       Abbrechen
     </Link>
@@ -231,7 +231,7 @@ const ActionButtons = ({ onReset, isSaving, isFormValid }: {
     <button
       type="button"
       onClick={onReset}
-      className="px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
+      className="px-4 py-2 text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-all"
     >
       Zurücksetzen
     </button>
@@ -240,7 +240,7 @@ const ActionButtons = ({ onReset, isSaving, isFormValid }: {
       type="submit"
       form="create-part-form"
       disabled={isSaving || !isFormValid}
-      className="inline-flex items-center px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+      className="inline-flex items-center px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium transition-all disabled:cursor-not-allowed"
     >
       {isSaving ? (
         <>
@@ -257,11 +257,11 @@ const ActionButtons = ({ onReset, isSaving, isFormValid }: {
   </div>
 );
 
-// Professional Info Banner Component
+// Info Banner Component
 const InfoBanner = () => (
-  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
+  <div className="bg-blue-50 border border-blue-200 p-4 mb-6">
     <div className="flex items-center space-x-3">
-      <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
+      <div className="w-5 h-5 bg-blue-100 flex items-center justify-center">
         <span className="text-blue-600 text-xs font-bold">i</span>
       </div>
       <span className="text-sm font-medium text-blue-900">
@@ -271,22 +271,22 @@ const InfoBanner = () => (
   </div>
 );
 
-// Clean Form Fields Component
+// Form Fields Component
 const FormFields = ({ formData, onChange }: {
   formData: FormData;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }) => (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow p-8">
-    <div className="flex items-center space-x-3 mb-8">
-      <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-        <WrenchScrewdriverIcon className="h-5 w-5 text-blue-600" />
+  <div className="bg-white border border-gray-200 shadow-sm p-6">
+    <div className="flex items-center space-x-3 mb-6">
+      <div className="w-8 h-8 bg-blue-100 flex items-center justify-center">
+        <WrenchScrewdriverIcon className="h-4 w-4 text-blue-600" />
       </div>
-      <h2 className="text-xl font-semibold text-gray-900">Grunddaten</h2>
+      <h2 className="text-lg font-medium text-gray-900">Grunddaten</h2>
     </div>
     
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Row 1: Teilenummer & Kategorie */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <InputField
           label="Teilenummer *"
           name="partNumber"
@@ -316,7 +316,7 @@ const FormFields = ({ formData, onChange }: {
       />
 
       {/* Row 3: Preis & Lagerbestand */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <InputField
           label="Preis (€) *"
           name="price"
@@ -373,7 +373,7 @@ const InputField = ({ label, name, value, onChange, type = "text", placeholder, 
   min?: string;
 }) => (
   <div>
-    <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
     <input
       type={type}
       name={name}
@@ -383,7 +383,7 @@ const InputField = ({ label, name, value, onChange, type = "text", placeholder, 
       required={required}
       step={step}
       min={min}
-      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+      className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all hover:border-gray-400"
     />
   </div>
 );
@@ -398,13 +398,13 @@ const SelectField = ({ label, name, value, onChange, options, required }: {
   required?: boolean;
 }) => (
   <div>
-    <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
     <select
       name={name}
       value={value}
       onChange={onChange}
       required={required}
-      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+      className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all hover:border-gray-400"
     >
       {options.map(([key, label]) => (
         <option key={key} value={key}>{label}</option>
@@ -423,19 +423,19 @@ const TextAreaField = ({ label, name, value, onChange, placeholder, rows }: {
   rows?: number;
 }) => (
   <div>
-    <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
     <textarea
       name={name}
       value={value}
       onChange={onChange}
       rows={rows}
       placeholder={placeholder}
-      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none transition-all hover:border-gray-300"
+      className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none transition-all hover:border-gray-400"
     />
   </div>
 );
 
-// Clean Error Display Component
+// Error Display Component
 const ErrorDisplay = ({ saveError, validationErrors }: {
   saveError: string | null;
   validationErrors: string[];
@@ -443,18 +443,18 @@ const ErrorDisplay = ({ saveError, validationErrors }: {
   if (!saveError && validationErrors.length === 0) return null;
 
   return (
-    <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mt-8">
+    <div className="bg-red-50 border border-red-200 p-6 mt-6">
       <div className="flex items-start space-x-4">
-        <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-          <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+        <div className="w-8 h-8 bg-red-100 flex items-center justify-center flex-shrink-0">
+          <ExclamationTriangleIcon className="h-4 w-4 text-red-600" />
         </div>
         <div className="flex-1">
           {saveError && (
-            <p className="text-red-800 font-semibold mb-3">{saveError}</p>
+            <p className="text-red-800 font-medium mb-3">{saveError}</p>
           )}
           {validationErrors.length > 0 && (
             <div>
-              <p className="text-red-800 font-semibold mb-3">Bitte korrigieren Sie folgende Fehler:</p>
+              <p className="text-red-800 font-medium mb-3">Bitte korrigieren Sie folgende Fehler:</p>
               <ul className="list-disc list-inside text-red-700 space-y-1">
                 {validationErrors.map((error, index) => (
                   <li key={index}>{error}</li>
@@ -468,61 +468,61 @@ const ErrorDisplay = ({ saveError, validationErrors }: {
   );
 };
 
-// Clean Live Preview Component
+// Live Preview Component
 const LivePreview = ({ formData, isFormValid }: {
   formData: FormData;
   isFormValid: boolean;
 }) => (
-  <div className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-6 xl:sticky xl:top-8">
-    <div className="flex items-center space-x-3 mb-8 pb-6 border-b border-gray-100">
-      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-        <EyeIcon className="h-5 w-5 text-gray-600" />
+  <div className="bg-white border border-gray-200 shadow-sm p-6 xl:sticky xl:top-6">
+    <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-200">
+      <div className="w-8 h-8 bg-gray-100 flex items-center justify-center">
+        <EyeIcon className="h-4 w-4 text-gray-600" />
       </div>
-      <h3 className="text-xl font-semibold text-gray-900">Vorschau</h3>
+      <h3 className="text-lg font-medium text-gray-900">Vorschau</h3>
     </div>
     
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PreviewField 
         label="Teilenummer"
         value={formData.partNumber}
-        className="text-lg font-bold"
+        className="text-lg font-semibold"
       />
       <PreviewField 
         label="Name"
         value={formData.name}
-        className="text-lg font-semibold"
+        className="text-lg font-medium"
       />
       <div>
-        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Kategorie</div>
-        <span className="inline-flex px-4 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-800 border border-gray-200">
+        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Kategorie</div>
+        <span className="inline-flex px-3 py-1 text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">
           {CATEGORY_LABELS[formData.category]}
         </span>
       </div>
       <div>
-        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Preis</div>
-        <div className="text-3xl font-bold text-gray-900">
+        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Preis</div>
+        <div className="text-2xl font-semibold text-gray-900">
           {formData.price.toFixed(2)} €
         </div>
       </div>
       <PreviewField 
         label="Lagerbestand"
         value={`${formData.stockQuantity} Stück`}
-        className="text-lg font-semibold"
+        className="text-lg font-medium"
       />
       {formData.manufacturer && (
         <PreviewField 
           label="Hersteller"
           value={formData.manufacturer}
-          className="text-lg font-semibold"
+          className="text-lg font-medium"
         />
       )}
     </div>
 
-    <div className="mt-8 pt-6 border-t border-gray-100">
+    <div className="mt-6 pt-4 border-t border-gray-200">
       <div className="flex items-center space-x-3">
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+        <div className={`w-6 h-6 flex items-center justify-center ${
           isFormValid 
-            ? 'bg-emerald-100 text-emerald-600' 
+            ? 'bg-green-100 text-green-600' 
             : 'bg-amber-100 text-amber-600'
         }`}>
           {isFormValid ? (
@@ -532,7 +532,7 @@ const LivePreview = ({ formData, isFormValid }: {
           )}
         </div>
         <span className={`text-sm font-medium ${
-          isFormValid ? 'text-emerald-700' : 'text-amber-700'
+          isFormValid ? 'text-green-700' : 'text-amber-700'
         }`}>
           {isFormValid ? 'Bereit zum Erstellen' : 'Pflichtfelder fehlen'}
         </span>
@@ -548,24 +548,24 @@ const PreviewField = ({ label, value, className }: {
   className?: string;
 }) => (
   <div>
-    <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{label}</div>
+    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">{label}</div>
     <div className={`text-gray-900 break-words ${className || ''}`}>
       {value || <span className="text-gray-400 italic font-normal">Noch nicht eingegeben</span>}
     </div>
   </div>
 );
 
-// Clean Mobile Actions Component
+// Mobile Actions Component
 const MobileActions = ({ isSaving, isFormValid }: {
   isSaving: boolean;
   isFormValid: boolean;
 }) => (
   <>
-    <div className="xl:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-2xl">
+    <div className="xl:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-2xl">
       <div className="flex gap-3 max-w-md mx-auto">
         <Link
           to="/parts"
-          className="flex-1 px-4 py-3 text-center text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+          className="flex-1 px-4 py-2 text-center text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
         >
           Abbrechen
         </Link>
@@ -573,7 +573,7 @@ const MobileActions = ({ isSaving, isFormValid }: {
           type="submit"
           form="create-part-form"
           disabled={isSaving || !isFormValid}
-          className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-medium rounded-xl transition-all disabled:cursor-not-allowed shadow-sm"
+          className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium transition-all disabled:cursor-not-allowed"
         >
           {isSaving ? (
             <>

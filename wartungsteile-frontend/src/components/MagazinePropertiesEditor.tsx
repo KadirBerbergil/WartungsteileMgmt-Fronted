@@ -1,4 +1,4 @@
-// src/components/MagazinePropertiesEditor.tsx - Clean & Professional Design
+// src/components/MagazinePropertiesEditor.tsx - Professionelle B2B-Version
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { machineService } from '../services';
@@ -20,7 +20,8 @@ import {
   CubeIcon,
   ClockIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 
 interface MagazinePropertiesEditorProps {
@@ -36,18 +37,15 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
 }) => {
   const queryClient = useQueryClient();
   
-  // State Management
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['basic']));
   const [showEmptyFields, setShowEmptyFields] = useState(false);
   
-  // Form Data
   const [formData, setFormData] = useState<UpdateMagazinePropertiesCommand>({});
   const [originalData, setOriginalData] = useState<UpdateMagazinePropertiesCommand>({});
   
-  // Completeness Data
   const [completenessData, setCompletenessData] = useState<{
     completeness: number;
     totalFields: number;
@@ -56,7 +54,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     hasExtendedData: boolean;
   } | null>(null);
 
-  // Initialize form data when machine changes
   useEffect(() => {
     const initialData: UpdateMagazinePropertiesCommand = {
       // Basic
@@ -114,19 +111,16 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     loadCompletenessData();
   }, [machine]);
 
-  // Load completeness data
   const loadCompletenessData = async () => {
     try {
       const data = await machineService.getMagazineDataCompleteness(machine.id);
       setCompletenessData(data);
     } catch (error) {
-      // Fallback to client-side calculation
       const data = machineService.calculateCompletenessClientSide(machine);
       setCompletenessData(data);
     }
   };
 
-  // Handle input changes
   const handleInputChange = (field: keyof UpdateMagazinePropertiesCommand, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -135,7 +129,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     setSaveError(null);
   };
 
-  // Toggle group expansion
   const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev => {
       const newSet = new Set(prev);
@@ -148,63 +141,49 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     });
   };
 
-  // Save changes
   const handleSave = async () => {
     setSaving(true);
     setSaveError(null);
     
     try {
-      // Validate data
       const validation = machineService.validateMagazineProperties(formData);
       if (!validation.isValid) {
         setSaveError(`Validierungsfehler: ${validation.errors.join(', ')}`);
         return;
       }
       
-      // Save to backend
       const result = await machineService.updateMagazineProperties(machine.id, formData);
       
       if (result.success) {
-        // Update original data
         setOriginalData(formData);
         setIsEditing(false);
         
-        // Reload completeness
         await loadCompletenessData();
-        
-        // Invalidate cache
         queryClient.invalidateQueries({ queryKey: ['machine', machine.id] });
         
-        // Notify parent
         if (onUpdate) {
           const updatedMachine = { ...machine, ...formData };
           onUpdate(updatedMachine);
         }
-        
-        console.log('✅ Magazin-Eigenschaften erfolgreich gespeichert');
       } else {
         setSaveError('Unbekannter Fehler beim Speichern');
       }
       
     } catch (error: any) {
-      console.error('❌ Fehler beim Speichern:', error);
       setSaveError(error.response?.data?.message || error.message);
     } finally {
       setSaving(false);
     }
   };
 
-  // Cancel editing
   const handleCancel = () => {
     setFormData(originalData);
     setIsEditing(false);
     setSaveError(null);
   };
 
-  // Check if has changes
   const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
 
-  // Clean field definitions with consistent styling
   const fieldGroups = {
     basic: {
       title: 'Basis-Eigenschaften',
@@ -291,12 +270,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     }
   };
 
-  // Render field based on type
   const renderField = (field: any) => {
     const value = formData[field.key as keyof UpdateMagazinePropertiesCommand];
     const isEmpty = !value || (typeof value === 'string' && value.trim() === '') || value === 0;
     
-    // Hide empty fields if showEmptyFields is false
     if (!showEmptyFields && isEmpty && !isEditing) {
       return null;
     }
@@ -305,12 +282,11 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     
     return (
       <div key={field.key} className="space-y-2">
-        <label htmlFor={fieldId} className="block text-sm font-semibold text-gray-700">
+        <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700">
           {field.label}
         </label>
         
         {isEditing ? (
-          // Edit Mode
           <>
             {field.type === 'boolean' ? (
               <div className="flex items-center space-x-3">
@@ -319,7 +295,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                   type="checkbox"
                   checked={!!value}
                   onChange={(e) => handleInputChange(field.key, e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
                 <span className="text-sm text-gray-600">
                   {value ? 'Ja' : 'Nein'}
@@ -330,7 +306,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 id={fieldId}
                 value={value as string || ''}
                 onChange={(e) => handleInputChange(field.key, e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
               >
                 {field.options?.map((option: string) => (
                   <option key={option} value={option}>
@@ -347,7 +323,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 min={field.min}
                 max={field.max}
                 placeholder={field.placeholder}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
               />
             ) : (
               <input
@@ -356,19 +332,18 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 value={value as string || ''}
                 onChange={(e) => handleInputChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
               />
             )}
           </>
         ) : (
-          // View Mode
-          <div className={`px-4 py-3 rounded-xl ${
+          <div className={`px-3 py-2 border ${
             isEmpty 
-              ? 'bg-gray-50 text-gray-500 italic' 
-              : 'bg-gray-50 text-gray-900 font-medium'
+              ? 'bg-gray-50 text-gray-500 italic border-gray-200' 
+              : 'bg-gray-50 text-gray-900 font-medium border-gray-200'
           }`}>
             {field.type === 'boolean' ? (
-              <span className={`font-semibold ${value ? 'text-emerald-600' : 'text-gray-500'}`}>
+              <span className={`font-medium ${value ? 'text-green-600' : 'text-gray-500'}`}>
                 {value ? 'Ja' : 'Nein'}
               </span>
             ) : field.type === 'number' && field.key === 'materialBarLength' ? (
@@ -382,12 +357,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     );
   };
 
-  // Render group with consistent design
   const renderGroup = (groupKey: string, group: any) => {
     const isExpanded = expandedGroups.has(groupKey);
     const GroupIcon = group.icon;
 
-    // Count filled fields in this group
     const filledFields = group.fields.filter((field: any) => {
       const value = formData[field.key as keyof UpdateMagazinePropertiesCommand];
       return value && (typeof value !== 'string' || value.trim() !== '') && value !== 0;
@@ -399,32 +372,31 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       return value && (typeof value !== 'string' || value.trim() !== '') && value !== 0;
     });
 
-    // Don't render group if no visible fields and not editing
     if (!isEditing && !showEmptyFields && visibleFields.length === 0) {
       return null;
     }
 
     return (
-      <div key={groupKey} className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      <div key={groupKey} className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <button
           onClick={() => toggleGroup(groupKey)}
-          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="w-6 h-6 bg-gray-100 flex items-center justify-center">
               <GroupIcon className="h-4 w-4 text-gray-600" />
             </div>
-            <span className="font-semibold text-gray-900">{group.title}</span>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
+            <span className="font-medium text-gray-900">{group.title}</span>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1">
               {filledFields.length}/{group.fields.length}
             </span>
           </div>
-          <ChevronDownIcon className={`h-5 w-5 text-gray-400 transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+          <ChevronDownIcon className={`h-4 w-4 text-gray-400 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
         </button>
         
         {isExpanded && (
-          <div className="px-6 pb-6 bg-gray-50/50">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          <div className="px-4 pb-4 bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
               {group.fields.map((field: any) => renderField(field))}
             </div>
           </div>
@@ -434,26 +406,25 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   };
 
   return (
-    <div className="space-y-8">
-      {/* Clean Header */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-              <CogIcon className="h-6 w-6 text-white" />
+            <div className="w-10 h-10 bg-blue-600 flex items-center justify-center">
+              <CogIcon className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Magazin-Eigenschaften</h2>
+              <h2 className="text-xl font-medium text-gray-900">Magazin-Eigenschaften</h2>
               <p className="text-gray-600 mt-1">Erweiterte Werkstattauftrag-Daten</p>
             </div>
           </div>
           
           {!readonly && (
             <div className="flex items-center space-x-3">
-              {/* View Controls */}
               <button
                 onClick={() => setShowEmptyFields(!showEmptyFields)}
-                className="flex items-center space-x-2 px-4 py-2 text-sm border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                className="flex items-center space-x-2 px-4 py-2 text-sm border border-gray-300 hover:bg-gray-50 transition-colors font-medium"
               >
                 {showEmptyFields ? (
                   <>
@@ -468,20 +439,19 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 )}
               </button>
               
-              {/* Edit/Save Controls */}
               {isEditing ? (
                 <>
                   <button
                     onClick={handleCancel}
                     disabled={isSaving}
-                    className="px-6 py-3 text-gray-700 font-medium border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     Abbrechen
                   </button>
                   <button
                     onClick={handleSave}
                     disabled={isSaving || !hasChanges}
-                    className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
+                    className="inline-flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium transition-all"
                   >
                     {isSaving ? (
                       <>
@@ -499,7 +469,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
+                  className="inline-flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all"
                 >
                   <PencilIcon className="h-4 w-4" />
                   <span>Bearbeiten</span>
@@ -510,73 +480,73 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         </div>
       </div>
 
-      {/* Clean Completeness Indicator */}
+      {/* Completeness Indicator - PROFESSIONELL ohne graue Punkte */}
       {completenessData && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-blue-50 border border-blue-200 p-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <ChartBarIcon className="h-5 w-5 text-blue-600" />
+              <div className="w-8 h-8 bg-blue-100 flex items-center justify-center">
+                <ChartBarIcon className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-blue-900">Vollständigkeit</h3>
-                <p className="text-blue-700">
+                <h3 className="font-medium text-blue-900">Vollständigkeit</h3>
+                <p className="text-blue-700 text-sm">
                   {completenessData.filledFields} von {completenessData.totalFields} Feldern ausgefüllt
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-blue-900">{completenessData.completeness}%</div>
+              <div className="text-2xl font-semibold text-blue-900">{completenessData.completeness}%</div>
               <div className="text-sm text-blue-700">Vollständig</div>
             </div>
           </div>
           
-          {/* Progress Bar */}
-          <div className="w-full bg-blue-200 rounded-full h-3 mb-4">
+          {/* SAUBERER Progress Bar ohne graue Punkte */}
+          <div className="w-full bg-blue-200 h-2 mb-4">
             <div 
-              className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+              className="bg-blue-600 h-2 transition-all duration-500"
               style={{ width: `${completenessData.completeness}%` }}
             ></div>
           </div>
           
           <div className="flex items-center justify-between text-sm">
-            <span className={`font-medium ${completenessData.hasBasicData ? 'text-emerald-700' : 'text-amber-700'}`}>
-              {completenessData.hasBasicData ? '✅ Grunddaten vorhanden' : '⚠️ Grunddaten fehlen'}
+            <span className={`font-medium ${completenessData.hasBasicData ? 'text-green-700' : 'text-amber-700'}`}>
+              {completenessData.hasBasicData ? 'Grunddaten vorhanden' : 'Erweiterte Daten optional'}
             </span>
-            <span className={`font-medium ${completenessData.hasExtendedData ? 'text-emerald-700' : 'text-gray-600'}`}>
-              {completenessData.hasExtendedData ? '✅ Erweiterte Daten vorhanden' : '📝 Erweiterte Daten optional'}
+            <span className={`font-medium ${completenessData.hasExtendedData ? 'text-green-700' : 'text-gray-600'}`}>
+              {completenessData.hasExtendedData ? 'Erweiterte Daten vorhanden' : 'Erweiterte Daten optional'}
             </span>
           </div>
         </div>
       )}
 
-      {/* Clean Error Display */}
+      {/* Error Display */}
       {saveError && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-          <div className="flex items-start space-x-4">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+        <div className="bg-red-50 border border-red-200 p-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-8 h-8 bg-red-100 flex items-center justify-center flex-shrink-0">
+              <ExclamationTriangleIcon className="h-4 w-4 text-red-600" />
             </div>
             <div>
-              <p className="text-red-900 font-semibold">Fehler beim Speichern</p>
+              <p className="text-red-900 font-medium">Fehler beim Speichern</p>
               <p className="text-red-800 mt-1">{saveError}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Clean Property Groups */}
-      <div className="space-y-6">
+      {/* Property Groups */}
+      <div className="space-y-4">
         {Object.entries(fieldGroups).map(([groupKey, group]) => renderGroup(groupKey, group))}
       </div>
 
-      {/* Clean Notes Section */}
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+      {/* Notes Section */}
+      <div className="bg-white border border-gray-200 shadow-sm p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-6 h-6 bg-gray-100 flex items-center justify-center">
             <DocumentTextIcon className="h-4 w-4 text-gray-600" />
           </div>
-          <h3 className="font-semibold text-gray-900">Zusätzliche Notizen</h3>
+          <h3 className="font-medium text-gray-900">Zusätzliche Notizen</h3>
         </div>
         
         {isEditing ? (
@@ -585,10 +555,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
             onChange={(e) => handleInputChange('magazinePropertiesNotes', e.target.value)}
             rows={4}
             placeholder="Zusätzliche Informationen zu den Magazin-Eigenschaften..."
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all hover:border-gray-300"
+            className="w-full px-3 py-2 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all hover:border-gray-400"
           />
         ) : (
-          <div className="px-4 py-3 bg-gray-50 rounded-xl text-gray-900">
+          <div className="px-3 py-2 bg-gray-50 border border-gray-200 text-gray-900">
             {formData.magazinePropertiesNotes || (
               <span className="text-gray-500 italic">Keine zusätzlichen Notizen</span>
             )}
@@ -596,9 +566,9 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         )}
       </div>
 
-      {/* Clean Metadata Footer */}
+      {/* Metadata Footer */}
       {(machine.magazinePropertiesLastUpdated || machine.magazinePropertiesUpdatedBy) && (
-        <div className="text-sm text-gray-500 pt-6 border-t border-gray-200">
+        <div className="text-sm text-gray-500 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <span>
               Letzte Aktualisierung: {machine.magazinePropertiesLastUpdated 
@@ -614,12 +584,5 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     </div>
   );
 };
-
-// Helper component for chevron icon
-const ChevronDownIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
 
 export default MagazinePropertiesEditor;

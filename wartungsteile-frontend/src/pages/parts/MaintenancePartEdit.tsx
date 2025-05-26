@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartEdit.tsx - Responsive Version (Zoom-Problem behoben)
+// src/pages/parts/MaintenancePartEdit.tsx - Professionelle B2B-Version
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,7 +17,6 @@ const MaintenancePartEdit = () => {
   const queryClient = useQueryClient();
   const { data: part, isLoading, error } = useMaintenancePartDetail(id || '');
   
-  // Formular-State
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -27,7 +26,6 @@ const MaintenancePartEdit = () => {
     stockQuantity: 0
   });
   
-  // Original-Daten für Änderungserkennung
   const [originalData, setOriginalData] = useState(formData);
   
   const [isSaving, setIsSaving] = useState(false);
@@ -35,7 +33,6 @@ const MaintenancePartEdit = () => {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Formular mit geladenen Daten befüllen
   useEffect(() => {
     if (part) {
       const data = {
@@ -51,13 +48,11 @@ const MaintenancePartEdit = () => {
     }
   }, [part]);
 
-  // Änderungen verfolgen
   useEffect(() => {
     const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
     setHasUnsavedChanges(hasChanges);
   }, [formData, originalData]);
 
-  // Formular-Eingaben verarbeiten
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -66,12 +61,10 @@ const MaintenancePartEdit = () => {
         (value === '' ? 0 : parseFloat(value)) : value
     }));
     
-    // Fehler zurücksetzen wenn User tippt
     if (saveError) setSaveError(null);
     if (validationErrors.length > 0) setValidationErrors([]);
   };
 
-  // Formular validieren
   const validateForm = (): boolean => {
     const errors: string[] = [];
     
@@ -91,18 +84,15 @@ const MaintenancePartEdit = () => {
     return errors.length === 0;
   };
 
-  // Speichern mit echter Backend-Integration
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!part || !id) return;
     
-    // Client-seitige Validierung
     if (!validateForm()) {
       return;
     }
     
-    // Keine Änderungen? Dann zurück zur Detail-Seite
     if (!hasUnsavedChanges) {
       navigate(`/parts/${id}`);
       return;
@@ -112,7 +102,6 @@ const MaintenancePartEdit = () => {
     setSaveError(null);
 
     try {
-      // Daten für API vorbereiten
       const updateData = {
         id: id,
         name: formData.name.trim(),
@@ -123,19 +112,12 @@ const MaintenancePartEdit = () => {
         stockQuantity: formData.stockQuantity
       };
 
-      console.log('Aktualisiere Wartungsteil:', updateData);
-      
-      // Echter API-Call
       const success = await maintenancePartService.update(id, updateData);
       
       if (success) {
-        console.log('Wartungsteil erfolgreich aktualisiert');
-        
-        // Cache invalidieren damit Listen und Details aktualisiert werden
         queryClient.invalidateQueries({ queryKey: ['maintenanceParts'] });
         queryClient.invalidateQueries({ queryKey: ['maintenancePart', id] });
         
-        // Success! Zurück zur Detail-Seite
         navigate(`/parts/${id}`, { 
           replace: true,
           state: { message: 'Wartungsteil erfolgreich aktualisiert!' }
@@ -145,11 +127,7 @@ const MaintenancePartEdit = () => {
       }
       
     } catch (error: any) {
-      console.error('Fehler beim Aktualisieren:', error);
-      
-      // Detaillierte Fehlerbehandlung
       if (error.response?.status === 400) {
-        // Validierungsfehler vom Backend
         if (error.response.data?.errors) {
           setValidationErrors(error.response.data.errors);
         } else {
@@ -171,7 +149,6 @@ const MaintenancePartEdit = () => {
     }
   };
 
-  // Änderungen verwerfen
   const handleReset = () => {
     if (part) {
       const data = {
@@ -188,7 +165,6 @@ const MaintenancePartEdit = () => {
     }
   };
 
-  // Browser-Warnung bei ungespeicherten Änderungen
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -205,12 +181,12 @@ const MaintenancePartEdit = () => {
     return (
       <div className="space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center space-x-3">
-          <Link to="/parts" className="text-primary hover:text-primary/80">
+          <Link to="/parts" className="text-blue-600 hover:text-blue-700">
             ← Zurück zur Liste
           </Link>
         </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <div className="bg-white border border-gray-200 p-8 text-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-500">Wartungsteil wird geladen...</p>
         </div>
       </div>
@@ -221,12 +197,12 @@ const MaintenancePartEdit = () => {
     return (
       <div className="space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center space-x-3">
-          <Link to="/parts" className="text-primary hover:text-primary/80">
+          <Link to="/parts" className="text-blue-600 hover:text-blue-700">
             ← Zurück zur Liste
           </Link>
         </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <div className="bg-white border border-gray-200 p-8 text-center">
+          <ExclamationTriangleIcon className="h-8 w-8 text-red-500 mx-auto mb-4" />
           <p className="text-red-500 font-medium">Wartungsteil nicht gefunden</p>
           <p className="text-gray-500 text-sm mt-2">
             {error instanceof Error ? error.message : 'Das Wartungsteil konnte nicht geladen werden.'}
@@ -240,34 +216,32 @@ const MaintenancePartEdit = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* RESPONSIVE HEADER - Stack bei kleineren Bildschirmen */}
+      {/* Header */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        {/* Linke Seite - Titel und Navigation */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <Link 
             to={`/parts/${id}`}
-            className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors font-medium w-fit"
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors font-medium w-fit"
           >
             <ArrowLeftIcon className="h-4 w-4" />
             <span>Zurück zu Details</span>
           </Link>
           <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
           <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+            <div className="flex-shrink-0 w-8 h-8 bg-orange-100 flex items-center justify-center">
               <PencilIcon className="h-4 w-4 text-orange-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Wartungsteil bearbeiten</h1>
+              <h1 className="text-2xl font-semibold text-gray-800">Wartungsteil bearbeiten</h1>
               <p className="text-gray-600 break-words">{part.partNumber} - {part.name}</p>
             </div>
           </div>
         </div>
 
-        {/* Rechte Seite - Buttons - Stack bei kleineren Bildschirmen */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3">
           <Link
             to={`/parts/${id}`}
-            className="px-4 py-2 text-center text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 text-center text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 hover:bg-gray-50"
           >
             Abbrechen
           </Link>
@@ -276,7 +250,7 @@ const MaintenancePartEdit = () => {
             type="button"
             onClick={handleReset}
             disabled={!hasUnsavedChanges}
-            className="px-4 py-2 text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-gray-700 font-medium hover:text-gray-900 transition-colors border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Zurücksetzen
           </button>
@@ -285,7 +259,7 @@ const MaintenancePartEdit = () => {
             type="submit"
             form="edit-part-form"
             disabled={isSaving || !isFormValid}
-            className="inline-flex items-center justify-center px-6 py-2 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white font-medium rounded-lg transition-all shadow-sm disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium transition-all disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <>
@@ -304,23 +278,22 @@ const MaintenancePartEdit = () => {
 
       {/* Änderungshinweis */}
       {hasUnsavedChanges && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-amber-50 border border-amber-200 p-4">
           <div className="flex items-center space-x-2">
-            <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600" />
-            <p className="text-yellow-700 font-medium">Sie haben ungespeicherte Änderungen</p>
+            <ExclamationTriangleIcon className="h-5 w-5 text-amber-600" />
+            <p className="text-amber-700 font-medium">Sie haben ungespeicherte Änderungen</p>
           </div>
         </div>
       )}
 
-      {/* RESPONSIVE GRID LAYOUT */}
+      {/* Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         
-        {/* Formular - 3/4 der Breite auf großen Bildschirmen */}
+        {/* Formular */}
         <div className="xl:col-span-3">
-          {/* Formular mit ID für externen Submit-Button */}
           <form id="edit-part-form" onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800 mb-6">Grunddaten</h2>
+            <div className="bg-white border border-gray-200 p-6">
+              <h2 className="text-lg font-medium text-gray-800 mb-6">Grunddaten</h2>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Teilenummer (nicht editierbar) */}
@@ -332,7 +305,7 @@ const MaintenancePartEdit = () => {
                     type="text"
                     value={part.partNumber}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 break-words"
+                    className="w-full px-3 py-2 border border-gray-300 bg-gray-50 text-gray-500 break-words"
                   />
                 </div>
 
@@ -345,7 +318,7 @@ const MaintenancePartEdit = () => {
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
                     <option value="WearPart">Verschleißteil</option>
@@ -365,7 +338,7 @@ const MaintenancePartEdit = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -382,7 +355,7 @@ const MaintenancePartEdit = () => {
                     onChange={handleInputChange}
                     step="0.01"
                     min="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -398,7 +371,7 @@ const MaintenancePartEdit = () => {
                     value={formData.stockQuantity}
                     onChange={handleInputChange}
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -413,7 +386,7 @@ const MaintenancePartEdit = () => {
                     name="manufacturer"
                     value={formData.manufacturer}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="z.B. Bosch, Siemens"
                   />
                 </div>
@@ -428,7 +401,7 @@ const MaintenancePartEdit = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Detaillierte Beschreibung des Wartungsteils..."
                   />
                 </div>
@@ -437,7 +410,7 @@ const MaintenancePartEdit = () => {
 
             {/* Fehleranzeigen */}
             {(saveError || validationErrors.length > 0) && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-red-50 border border-red-200 p-4">
                 <div className="flex items-start space-x-3">
                   <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
@@ -461,27 +434,27 @@ const MaintenancePartEdit = () => {
           </form>
         </div>
 
-        {/* Live-Vorschau/Änderungs-Übersicht Sidebar */}
+        {/* Live-Vorschau Sidebar */}
         <div className="xl:col-span-1">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6 xl:sticky xl:top-6">
+          <div className="bg-white border border-gray-200 p-6 xl:sticky xl:top-6">
             <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-200">
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-orange-500 flex items-center justify-center">
                 <PencilIcon className="h-4 w-4 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">Aktuelle Werte</h3>
+              <h3 className="text-lg font-medium text-gray-800">Aktuelle Werte</h3>
             </div>
             
             <div className="space-y-4">
               {/* Teilenummer */}
               <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Teilenummer</div>
-                <div className="text-base font-bold text-gray-900 break-words">{part.partNumber}</div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Teilenummer</div>
+                <div className="text-base font-semibold text-gray-900 break-words">{part.partNumber}</div>
               </div>
               
               {/* Name */}
               <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Name</div>
-                <div className="text-base font-semibold text-gray-900 break-words">
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Name</div>
+                <div className="text-base font-medium text-gray-900 break-words">
                   {formData.name || <span className="text-gray-400 italic font-normal">Leer</span>}
                 </div>
                 {formData.name !== originalData.name && (
@@ -491,8 +464,8 @@ const MaintenancePartEdit = () => {
               
               {/* Kategorie */}
               <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Kategorie</div>
-                <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-500 text-white">
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Kategorie</div>
+                <span className="inline-flex px-2 py-1 text-xs font-medium bg-blue-500 text-white">
                   {formData.category === 'WearPart' ? 'Verschleißteil' :
                    formData.category === 'SparePart' ? 'Ersatzteil' :
                    formData.category === 'ConsumablePart' ? 'Verbrauchsmaterial' : 'Werkzeug'}
@@ -508,8 +481,8 @@ const MaintenancePartEdit = () => {
               
               {/* Preis */}
               <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Preis</div>
-                <div className="text-2xl font-bold text-blue-600">{formData.price.toFixed(2)} €</div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Preis</div>
+                <div className="text-xl font-semibold text-blue-600">{formData.price.toFixed(2)} €</div>
                 {formData.price !== originalData.price && (
                   <div className="text-xs text-blue-600 mt-1">Geändert von: {originalData.price.toFixed(2)} €</div>
                 )}
@@ -517,8 +490,8 @@ const MaintenancePartEdit = () => {
               
               {/* Lagerbestand */}
               <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Lagerbestand</div>
-                <div className="text-base font-semibold text-gray-900">{formData.stockQuantity} Stück</div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Lagerbestand</div>
+                <div className="text-base font-medium text-gray-900">{formData.stockQuantity} Stück</div>
                 {formData.stockQuantity !== originalData.stockQuantity && (
                   <div className="text-xs text-blue-600 mt-1">Geändert von: {originalData.stockQuantity} Stück</div>
                 )}
@@ -526,8 +499,8 @@ const MaintenancePartEdit = () => {
               
               {/* Hersteller */}
               <div>
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Hersteller</div>
-                <div className="text-base font-semibold text-gray-900 break-words">
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Hersteller</div>
+                <div className="text-base font-medium text-gray-900 break-words">
                   {formData.manufacturer || <span className="text-gray-400 italic font-normal">Nicht angegeben</span>}
                 </div>
                 {formData.manufacturer !== originalData.manufacturer && (
@@ -543,17 +516,17 @@ const MaintenancePartEdit = () => {
               <div className="flex items-center space-x-3">
                 {hasUnsavedChanges ? (
                   <>
-                    <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-orange-100 flex items-center justify-center">
                       <ExclamationTriangleIcon className="h-4 w-4 text-orange-600" />
                     </div>
-                    <span className="text-sm text-orange-700 font-semibold">Ungespeicherte Änderungen</span>
+                    <span className="text-sm text-orange-700 font-medium">Ungespeicherte Änderungen</span>
                   </>
                 ) : (
                   <>
-                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-green-100 flex items-center justify-center">
                       <CheckIcon className="h-4 w-4 text-green-600" />
                     </div>
-                    <span className="text-sm text-green-700 font-semibold">Alle Änderungen gespeichert</span>
+                    <span className="text-sm text-green-700 font-medium">Alle Änderungen gespeichert</span>
                   </>
                 )}
               </div>
@@ -562,12 +535,12 @@ const MaintenancePartEdit = () => {
         </div>
       </div>
 
-      {/* Mobile Action Buttons - Nur auf kleinen Bildschirmen sichtbar */}
+      {/* Mobile Action Buttons */}
       <div className="xl:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
         <div className="flex gap-3 max-w-md mx-auto">
           <Link
             to={`/parts/${id}`}
-            className="flex-1 px-4 py-3 text-center text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-2 text-center text-gray-700 font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
           >
             Abbrechen
           </Link>
@@ -575,7 +548,7 @@ const MaintenancePartEdit = () => {
             type="submit"
             form="edit-part-form"
             disabled={isSaving || !isFormValid || !hasUnsavedChanges}
-            className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-primary hover:bg-primary/90 disabled:bg-gray-400 text-white font-medium rounded-lg transition-all disabled:cursor-not-allowed"
+            className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium transition-all disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <>

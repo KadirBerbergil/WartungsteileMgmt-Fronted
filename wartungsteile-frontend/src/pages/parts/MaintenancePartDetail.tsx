@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartDetail.tsx
+// src/pages/parts/MaintenancePartDetail.tsx - Professionelle B2B-Version
 import { useParams, Link } from 'react-router-dom';
 import { useMaintenancePartDetail } from '../../hooks/useParts';
 import { 
@@ -12,13 +12,12 @@ const MaintenancePartDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: part, isLoading, error } = useMaintenancePartDetail(id || '');
 
-  // Kategorie-Badge Styling (gleich wie in der Liste)
   const getCategoryBadge = (category: string) => {
     const styles = {
-      'WearPart': 'bg-red-100 text-red-800 border-red-200',
-      'SparePart': 'bg-blue-100 text-blue-800 border-blue-200', 
-      'ConsumablePart': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'ToolPart': 'bg-green-100 text-green-800 border-green-200'
+      'WearPart': 'bg-red-50 text-red-800 border-red-200',
+      'SparePart': 'bg-blue-50 text-blue-800 border-blue-200', 
+      'ConsumablePart': 'bg-amber-50 text-amber-800 border-amber-200',
+      'ToolPart': 'bg-green-50 text-green-800 border-green-200'
     };
     
     const labels = {
@@ -29,13 +28,12 @@ const MaintenancePartDetail = () => {
     };
 
     return (
-      <span className={`px-3 py-1 text-sm font-medium rounded-full border ${styles[category as keyof typeof styles] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 text-sm font-medium border ${styles[category as keyof typeof styles] || 'bg-gray-50 text-gray-800'}`}>
         {labels[category as keyof typeof labels] || category}
       </span>
     );
   };
 
-  // Lagerbestand Status
   const getStockStatus = (quantity: number) => {
     if (quantity === 0) {
       return {
@@ -49,9 +47,9 @@ const MaintenancePartDetail = () => {
     } else if (quantity <= 3) {
       return {
         icon: ExclamationTriangleIcon,
-        color: 'text-yellow-600',
-        bgColor: 'bg-yellow-50',
-        borderColor: 'border-yellow-200',
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-50',
+        borderColor: 'border-amber-200',
         label: 'Niedriger Bestand',
         description: 'Bald nachbestellen'
       };
@@ -71,12 +69,12 @@ const MaintenancePartDetail = () => {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-3">
-          <Link to="/parts" className="text-primary hover:text-primary/80">
+          <Link to="/parts" className="text-blue-600 hover:text-blue-700">
             ← Zurück zur Liste
           </Link>
         </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <div className="bg-white border border-gray-200 p-8 text-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-500">Wartungsteil wird geladen...</p>
         </div>
       </div>
@@ -87,12 +85,12 @@ const MaintenancePartDetail = () => {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-3">
-          <Link to="/parts" className="text-primary hover:text-primary/80">
+          <Link to="/parts" className="text-blue-600 hover:text-blue-700">
             ← Zurück zur Liste
           </Link>
         </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <div className="bg-white border border-gray-200 p-8 text-center">
+          <ExclamationTriangleIcon className="h-8 w-8 text-red-500 mx-auto mb-4" />
           <p className="text-red-500 font-medium">Fehler beim Laden des Wartungsteils</p>
           <p className="text-gray-500 text-sm mt-2">
             {error instanceof Error ? error.message : 'Unbekannter Fehler'}
@@ -106,11 +104,11 @@ const MaintenancePartDetail = () => {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-3">
-          <Link to="/parts" className="text-primary hover:text-primary/80">
+          <Link to="/parts" className="text-blue-600 hover:text-blue-700">
             ← Zurück zur Liste
           </Link>
         </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+        <div className="bg-white border border-gray-200 p-8 text-center">
           <p className="text-gray-500">Wartungsteil nicht gefunden.</p>
         </div>
       </div>
@@ -127,18 +125,18 @@ const MaintenancePartDetail = () => {
         <div className="flex items-center space-x-4">
           <Link 
             to="/parts" 
-            className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
           >
             <ArrowLeftIcon className="h-4 w-4" />
             <span>Zurück zur Liste</span>
           </Link>
           <div className="h-6 w-px bg-gray-300"></div>
-          <h1 className="text-2xl font-bold text-gray-800">{part.name}</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">{part.name}</h1>
         </div>
         
         <Link 
           to={`/parts/${part.id}/edit`}
-          className="flex items-center space-x-2 bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg transition-all hover:shadow-lg"
+          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 font-medium transition-all"
         >
           <PencilIcon className="h-4 w-4" />
           <span>Bearbeiten</span>
@@ -149,8 +147,8 @@ const MaintenancePartDetail = () => {
         {/* Hauptinformationen */}
         <div className="lg:col-span-2 space-y-6">
           {/* Grunddaten */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Grunddaten</h2>
+          <div className="bg-white border border-gray-200 p-6">
+            <h2 className="text-lg font-medium text-gray-800 mb-4">Grunddaten</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Teilenummer</label>
@@ -177,8 +175,8 @@ const MaintenancePartDetail = () => {
 
           {/* Beschreibung */}
           {part.description && (
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Beschreibung</h2>
+            <div className="bg-white border border-gray-200 p-6">
+              <h2 className="text-lg font-medium text-gray-800 mb-4">Beschreibung</h2>
               <p className="text-gray-600 leading-relaxed">{part.description}</p>
             </div>
           )}
@@ -187,17 +185,17 @@ const MaintenancePartDetail = () => {
         {/* Seitenleiste mit Lagerbestand */}
         <div className="space-y-6">
           {/* Lagerbestand */}
-          <div className={`p-6 rounded-xl border-2 ${stockStatus.bgColor} ${stockStatus.borderColor}`}>
+          <div className={`p-6 border-2 ${stockStatus.bgColor} ${stockStatus.borderColor}`}>
             <div className="flex items-center space-x-3 mb-4">
-              <StockIcon className={`h-6 w-6 ${stockStatus.color}`} />
+              <StockIcon className={`h-5 w-5 ${stockStatus.color}`} />
               <div>
-                <h3 className="font-semibold text-gray-800">Lagerbestand</h3>
+                <h3 className="font-medium text-gray-800">Lagerbestand</h3>
                 <p className={`text-sm ${stockStatus.color}`}>{stockStatus.label}</p>
               </div>
             </div>
             
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-800 mb-1">
+              <div className="text-2xl font-semibold text-gray-800 mb-1">
                 {part.stockQuantity}
               </div>
               <div className="text-sm text-gray-600 mb-3">
@@ -210,7 +208,7 @@ const MaintenancePartDetail = () => {
 
             {part.stockQuantity <= 3 && (
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <button className="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-all">
                   Nachbestellen
                 </button>
               </div>
@@ -218,9 +216,9 @@ const MaintenancePartDetail = () => {
           </div>
 
           {/* Lagerwert */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="font-semibold text-gray-800 mb-2">Lagerwert</h3>
-            <div className="text-2xl font-bold text-primary">
+          <div className="bg-white border border-gray-200 p-6">
+            <h3 className="font-medium text-gray-800 mb-2">Lagerwert</h3>
+            <div className="text-2xl font-semibold text-blue-600">
               {(part.price * part.stockQuantity).toFixed(2)} €
             </div>
             <p className="text-sm text-gray-500 mt-1">
@@ -229,17 +227,17 @@ const MaintenancePartDetail = () => {
           </div>
 
           {/* Schnellaktionen */}
-          <div className="bg-gray-50 p-4 rounded-xl">
+          <div className="bg-gray-50 p-4">
             <h3 className="font-medium text-gray-700 mb-3">Schnellaktionen</h3>
             <div className="space-y-2">
-              <button className="w-full text-left text-sm text-gray-600 hover:text-primary py-2 px-3 rounded hover:bg-white transition-all">
-                📊 Kompatible Maschinen anzeigen
+              <button className="w-full text-left text-sm text-gray-600 hover:text-blue-600 py-2 px-3 hover:bg-white transition-all">
+                Kompatible Maschinen anzeigen
               </button>
-              <button className="w-full text-left text-sm text-gray-600 hover:text-primary py-2 px-3 rounded hover:bg-white transition-all">
-                📋 Verwendungshistorie
+              <button className="w-full text-left text-sm text-gray-600 hover:text-blue-600 py-2 px-3 hover:bg-white transition-all">
+                Verwendungshistorie
               </button>
-              <button className="w-full text-left text-sm text-gray-600 hover:text-primary py-2 px-3 rounded hover:bg-white transition-all">
-                📈 Preishistorie
+              <button className="w-full text-left text-sm text-gray-600 hover:text-blue-600 py-2 px-3 hover:bg-white transition-all">
+                Preishistorie
               </button>
             </div>
           </div>
