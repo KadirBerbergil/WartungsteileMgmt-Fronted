@@ -1,25 +1,31 @@
-// src/pages/parts/MaintenancePartsList.tsx - Korrekte Wartungsteile-Liste - KORRIGIERT
+// src/pages/parts/MaintenancePartsList.tsx - VOLLSTÄNDIG ÜBERARBEITET mit Löschen-Funktionalität
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMaintenanceParts } from '../../hooks/useParts';
+import { useMaintenanceParts, useDeleteMaintenancePart } from '../../hooks/useParts';
 import { 
   MagnifyingGlassIcon, 
   PlusIcon,
   EyeIcon,
   PencilIcon,
+  TrashIcon,
   CubeIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
   FunnelIcon,
-  ShoppingCartIcon
+  ShoppingCartIcon,
+  ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 
 const MaintenancePartsList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [stockFilter, setStockFilter] = useState<string>('all');
+  const [partToDelete, setPartToDelete] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
   const { data: parts, isLoading, error } = useMaintenanceParts();
+  const deletePart = useDeleteMaintenancePart();
 
   const filteredParts = parts?.filter(part => {
     const matchesSearch = part.partNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -43,6 +49,35 @@ const MaintenancePartsList = () => {
     inStock: parts.filter(p => p.stockQuantity > 3).length,
     totalValue: parts.reduce((sum, p) => sum + (p.price * p.stockQuantity), 0)
   } : { total: 0, outOfStock: 0, lowStock: 0, inStock: 0, totalValue: 0 };
+
+  // Delete handlers
+  const handleDeleteClick = (partId: string) => {
+    setPartToDelete(partId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!partToDelete) return;
+    
+    try {
+      await deletePart.mutateAsync(partToDelete);
+      setShowDeleteModal(false);
+      setPartToDelete(null);
+    } catch (error) {
+      console.error('Fehler beim Löschen des Wartungsteils:', error);
+      // Error wird durch React Query Error Boundary behandelt
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setPartToDelete(null);
+  };
+
+  const getPartToDeleteInfo = () => {
+    if (!partToDelete || !parts) return null;
+    return parts.find(p => p.id === partToDelete);
+  };
 
   const getCategoryConfig = (category: string) => {
     const configs = {
@@ -113,7 +148,11 @@ const MaintenancePartsList = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Wartungsteile werden geladen</h3>
+          <p className="text-gray-600">Daten werden zusammengestellt...</p>
+        </div>
       </div>
     );
   }
@@ -125,6 +164,12 @@ const MaintenancePartsList = () => {
           <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-red-600">Fehler beim Laden</h3>
           <p className="text-gray-600">Die Wartungsteile konnten nicht geladen werden.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Seite neu laden
+          </button>
         </div>
       </div>
     );
@@ -366,6 +411,13 @@ const MaintenancePartsList = () => {
                           >
                             <PencilIcon className="h-4 w-4" />
                           </Link>
+                          <button
+                            onClick={() => handleDeleteClick(part.id)}
+                            className="inline-flex items-center p-2 text-gray-400 hover:text-red-600 transition-colors"
+                            title="Löschen"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -399,6 +451,107 @@ const MaintenancePartsList = () => {
               <span>Erstes Wartungsteil hinzufügen</span>
             </Link>
           )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <TrashIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Wartungsteil löschen</h3>
+                  <p className="text-sm text-gray-600 mt-1">Diese Aktion kann nicht rückgängig gemacht werden</p>
+                </div>
+              </div>
+
+              {getPartToDeleteInfo() && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <CubeIcon className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{getPartToDeleteInfo()?.name}</p>
+                      <p className="text-sm text-gray-600">{getPartToDeleteInfo()?.partNumber}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Kategorie:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {getCategoryConfig(getPartToDeleteInfo()?.category || '').label}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Bestand:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {getPartToDeleteInfo()?.stockQuantity} Stück
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Preis:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {getPartToDeleteInfo()?.price.toFixed(2)} €
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Lagerwert:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {((getPartToDeleteInfo()?.price || 0) * (getPartToDeleteInfo()?.stockQuantity || 0)).toFixed(2)} €
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-red-900 mb-1">Achtung!</h4>
+                    <ul className="text-sm text-red-800 space-y-1">
+                      <li>• Das Wartungsteil wird permanent gelöscht</li>
+                      <li>• Verknüpfungen zu Maschinen bleiben bestehen</li>
+                      <li>• Wartungshistorie mit diesem Teil bleibt erhalten</li>
+                      <li>• Lagerwert geht verloren</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  disabled={deletePart.isPending}
+                  className="flex-1 px-4 py-2 text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deletePart.isPending}
+                  className="flex-1 inline-flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {deletePart.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Wird gelöscht...</span>
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-4 w-4" />
+                      <span>Endgültig löschen</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

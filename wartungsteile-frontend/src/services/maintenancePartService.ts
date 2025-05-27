@@ -1,4 +1,4 @@
-// src/services/maintenancePartService.ts - KORRIGIERTE VERSION ohne Category Mapping
+// src/services/maintenancePartService.ts - KORRIGIERTE VERSION für Backend-Kompatibilität
 import { api } from './api';
 import type { MaintenancePart } from '../types/api';
 
@@ -41,27 +41,31 @@ export const maintenancePartService = {
     };
   },
   
-  // Neues Wartungsteil erstellen - Category als String senden
+  // ✅ KORRIGIERT: Neues Wartungsteil erstellen - CreateMaintenancePartCommand Struktur
   create: async (part: any): Promise<string> => {
-    // Backend sollte String-Categories akzeptieren
-    const backendData = {
-      ...part,
-      // Category als String senden - Backend-kompatibel
-      category: part.category || 'WearPart'
+    // ✅ CreateMaintenancePartCommand - keine ID erforderlich
+    const createCommand = {
+      partNumber: part.partNumber?.trim() || '',
+      name: part.name?.trim() || '',
+      description: part.description?.trim() || '',
+      category: part.category || 'WearPart', // String-Category
+      price: Number(part.price) || 0,
+      manufacturer: part.manufacturer?.trim() || '',
+      stockQuantity: Number(part.stockQuantity) || 0
     };
     
-    console.log('📤 Sende Wartungsteil-Daten:', backendData);
+    console.log('📤 Sende CreateMaintenancePartCommand:', createCommand);
     
     try {
-      const response = await api.post('/MaintenanceParts', backendData);
+      const response = await api.post('/MaintenanceParts', createCommand);
       console.log('✅ Wartungsteil erfolgreich erstellt:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ Fehler beim Erstellen des Wartungsteils:', error);
       
       // Falls Backend noch Zahlen erwartet, als Fallback konvertieren
-      if (error.response?.status === 400 && error.response?.data?.includes?.('category')) {
-        console.warn('⚠️ Backend erwartet noch Zahlen-Categories, konvertiere...');
+      if (error.response?.status === 400) {
+        console.warn('⚠️ Backend-Validierungsfehler, versuche Category-Mapping...');
         const categoryMapping: Record<string, number> = {
           'WearPart': 0,
           'SparePart': 1,
@@ -69,12 +73,13 @@ export const maintenancePartService = {
           'ToolPart': 3
         };
         
-        const fallbackData = {
-          ...backendData,
-          category: categoryMapping[part.category] ?? 0
+        const fallbackCommand = {
+          ...createCommand,
+          category: categoryMapping[part.category] ?? 0 // Fallback zu Zahl
         };
         
-        const fallbackResponse = await api.post('/MaintenanceParts', fallbackData);
+        console.log('📤 Fallback mit Zahlen-Category:', fallbackCommand);
+        const fallbackResponse = await api.post('/MaintenanceParts', fallbackCommand);
         return fallbackResponse.data;
       }
       
@@ -82,27 +87,41 @@ export const maintenancePartService = {
     }
   },
   
-  // Wartungsteil aktualisieren - Category als String senden
+  // ✅ KORRIGIERT: Wartungsteil aktualisieren - UpdateMaintenancePartCommand Struktur
   update: async (id: string, part: any): Promise<boolean> => {
-    // Backend sollte String-Categories akzeptieren
-    const backendData = {
-      ...part,
-      // Category als String senden - Backend-kompatibel
-      category: part.category || 'WearPart'
+    // ✅ UpdateMaintenancePartCommand - KEINE ID im Body!
+    const updateCommand = {
+      // ❌ id: id, // ENTFERNT - Controller setzt command.Id = id
+      name: part.name?.trim() || '',
+      description: part.description?.trim() || '',
+      category: part.category || 'WearPart', // String-Category
+      price: Number(part.price) || 0,
+      manufacturer: part.manufacturer?.trim() || '',
+      stockQuantity: Number(part.stockQuantity) || 0
     };
     
-    console.log('📤 Aktualisiere Wartungsteil-Daten:', backendData);
+    console.log('📤 Sende UpdateMaintenancePartCommand:', updateCommand);
+    console.log('📤 Update-URL:', `/MaintenanceParts/${id}`);
     
     try {
-      const response = await api.put(`/MaintenanceParts/${id}`, backendData);
-      console.log('✅ Wartungsteil erfolgreich aktualisiert');
-      return response.status === 200;
+      const response = await api.put(`/MaintenanceParts/${id}`, updateCommand);
+      console.log('✅ Wartungsteil erfolgreich aktualisiert:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+      return response.status === 200 || response.status === 204;
     } catch (error: any) {
-      console.error('❌ Fehler beim Aktualisieren des Wartungsteils:', error);
+      console.error('❌ Fehler beim Aktualisieren des Wartungsteils:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: `/MaintenanceParts/${id}`,
+        sentData: updateCommand
+      });
       
       // Falls Backend noch Zahlen erwartet, als Fallback konvertieren
-      if (error.response?.status === 400 && error.response?.data?.includes?.('category')) {
-        console.warn('⚠️ Backend erwartet noch Zahlen-Categories, konvertiere...');
+      if (error.response?.status === 400) {
+        console.warn('⚠️ Backend-Validierungsfehler, versuche Category-Mapping...');
         const categoryMapping: Record<string, number> = {
           'WearPart': 0,
           'SparePart': 1,
@@ -110,13 +129,14 @@ export const maintenancePartService = {
           'ToolPart': 3
         };
         
-        const fallbackData = {
-          ...backendData,
-          category: categoryMapping[part.category] ?? 0
+        const fallbackCommand = {
+          ...updateCommand,
+          category: categoryMapping[part.category] ?? 0 // Fallback zu Zahl
         };
         
-        const fallbackResponse = await api.put(`/MaintenanceParts/${id}`, fallbackData);
-        return fallbackResponse.status === 200;
+        console.log('📤 Fallback mit Zahlen-Category:', fallbackCommand);
+        const fallbackResponse = await api.put(`/MaintenanceParts/${id}`, fallbackCommand);
+        return fallbackResponse.status === 200 || fallbackResponse.status === 204;
       }
       
       throw error;
