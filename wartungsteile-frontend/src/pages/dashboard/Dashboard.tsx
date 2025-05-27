@@ -1,4 +1,4 @@
-// src/pages/dashboard/Dashboard.tsx - Typisierung korrigiert
+// src/pages/dashboard/Dashboard.tsx - KORRIGIERTE VERSION mit fixen Tailwind-Klassen
 import { useNavigate } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -108,6 +108,7 @@ const Dashboard = () => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* ✅ FIX: Statische Klassen in MetricCard verwenden */}
         <MetricCard
           title="Maschinen"
           value={machineStats.total.toString()}
@@ -115,7 +116,7 @@ const Dashboard = () => {
           trend="+2"
           trendUp={true}
           icon={CogIcon}
-          color="blue"
+          colorClasses="bg-blue-50 text-blue-600"
         />
         
         <MetricCard
@@ -125,7 +126,7 @@ const Dashboard = () => {
           trend="+1"
           trendUp={false}
           icon={ExclamationTriangleIcon}
-          color="amber"
+          colorClasses="bg-amber-50 text-amber-600"
           alert={machineStats.maintenanceDue > 0}
         />
         
@@ -136,7 +137,7 @@ const Dashboard = () => {
           trend="-1"
           trendUp={false}
           icon={CubeIcon}
-          color="emerald"
+          colorClasses="bg-emerald-50 text-emerald-600"
         />
         
         <MetricCard
@@ -146,7 +147,7 @@ const Dashboard = () => {
           trend="+5%"
           trendUp={true}
           icon={WrenchScrewdriverIcon}
-          color="purple"
+          colorClasses="bg-purple-50 text-purple-600"
         />
       </div>
 
@@ -280,7 +281,7 @@ const Dashboard = () => {
               title="Maschinen verwalten"
               subtitle={`${machineStats.total} CNC-Systeme`}
               onClick={() => navigate('/machines')}
-              color="blue"
+              colorClasses="bg-blue-500"
             />
             
             <QuickActionButton 
@@ -288,7 +289,7 @@ const Dashboard = () => {
               title="Wartungsteile"
               subtitle={`${partStats.total} Komponenten`}
               onClick={() => navigate('/parts')}
-              color="emerald"
+              colorClasses="bg-emerald-500"
             />
             
             <QuickActionButton 
@@ -296,7 +297,7 @@ const Dashboard = () => {
               title="Neue Wartung"
               subtitle="Wartung planen"
               onClick={() => alert('Wartungsplanung öffnet bald')}
-              color="purple"
+              colorClasses="bg-purple-500"
             />
             
             <QuickActionButton 
@@ -304,7 +305,7 @@ const Dashboard = () => {
               title="Service Kalender"
               subtitle="Termine anzeigen"
               onClick={() => alert('Kalender öffnet bald')}
-              color="indigo"
+              colorClasses="bg-indigo-500"
             />
           </div>
         </div>
@@ -313,29 +314,21 @@ const Dashboard = () => {
   );
 };
 
-// Metric Card Component
-const MetricCard = ({ title, value, subtitle, trend, trendUp, icon: Icon, color, alert }: {
+// ✅ FIX: MetricCard mit statischen Klassen
+const MetricCard = ({ title, value, subtitle, trend, trendUp, icon: Icon, colorClasses, alert }: {
   title: string;
   value: string;
   subtitle: string;
   trend: string;
   trendUp: boolean;
   icon: React.ComponentType<React.ComponentProps<'svg'>>;
-  color: string;
+  colorClasses: string; // ✅ Jetzt statische Klassen
   alert?: boolean;
 }) => {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    purple: 'bg-purple-50 text-purple-600',
-    red: 'bg-red-50 text-red-600'
-  };
-
   return (
     <div className={`bg-white rounded-lg border p-6 ${alert ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'}`}>
       <div className="flex items-center justify-between mb-4">
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[color as keyof typeof colorClasses]}`}>
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses}`}>
           <Icon className="h-5 w-5" />
         </div>
         <div className={`flex items-center space-x-1 text-sm ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
@@ -376,27 +369,20 @@ const ActivityItem = ({ icon: Icon, iconColor, title, description, time, priorit
   </div>
 );
 
-// Quick Action Button Component
-const QuickActionButton = ({ icon: Icon, title, subtitle, onClick, color }: {
+// ✅ FIX: QuickActionButton mit statischen Klassen
+const QuickActionButton = ({ icon: Icon, title, subtitle, onClick, colorClasses }: {
   icon: React.ComponentType<React.ComponentProps<'svg'>>;
   title: string;
   subtitle: string;
   onClick: () => void;
-  color: string;
+  colorClasses: string; // ✅ Jetzt statische Klassen
 }) => {
-  const colorClasses = {
-    blue: 'bg-blue-500',
-    emerald: 'bg-emerald-500',
-    purple: 'bg-purple-500',
-    indigo: 'bg-indigo-500'
-  };
-
   return (
     <button
       onClick={onClick}
       className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors text-left"
     >
-      <div className={`w-10 h-10 ${colorClasses[color as keyof typeof colorClasses]} rounded-lg flex items-center justify-center`}>
+      <div className={`w-10 h-10 ${colorClasses} rounded-lg flex items-center justify-center`}>
         <Icon className="h-5 w-5 text-white" />
       </div>
       <div className="flex-1 min-w-0">

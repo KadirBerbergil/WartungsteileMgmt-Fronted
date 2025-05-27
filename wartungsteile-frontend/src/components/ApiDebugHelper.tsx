@@ -1,4 +1,4 @@
-// src/components/ApiDebugHelper.tsx - Neue Debug-Komponente
+// src/components/ApiDebugHelper.tsx - KORRIGIERT: Unused Imports entfernt
 import { useState } from 'react';
 import { api, checkBackendStatus } from '../services/api';
 import { 
@@ -6,8 +6,8 @@ import {
   XCircleIcon, 
   ExclamationTriangleIcon,
   WrenchScrewdriverIcon,
-  GlobeAltIcon,
-  ServerIcon,
+  // GlobeAltIcon, ❌ ENTFERNT - nicht verwendet
+  // ServerIcon, ❌ ENTFERNT - nicht verwendet
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
 

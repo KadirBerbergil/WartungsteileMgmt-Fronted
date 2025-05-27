@@ -1,4 +1,4 @@
-// src/pages/machines/MachineDetail.tsx - Korrekte Machine Detail Implementierung
+// src/pages/machines/MachineDetail.tsx - KORRIGIERTE VERSION mit fixen Tailwind-Klassen
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMachineDetail } from '../../hooks/useMachines';
@@ -26,35 +26,28 @@ const MachineDetail = () => {
   const [showPdfUpload, setShowPdfUpload] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'properties' | 'maintenance'>('overview');
 
+  // ✅ FIX: Statische Tailwind-Klassen statt dynamischer
   const getStatusConfig = (status: string) => {
     const configs = {
       'Active': {
-        bg: 'bg-green-50',
-        text: 'text-green-700',
-        border: 'border-green-200',
+        classes: 'bg-green-50 text-green-700 border-green-200',
         icon: CheckCircleIcon,
         label: 'Aktiv'
       },
       'InMaintenance': {
-        bg: 'bg-amber-50', 
-        text: 'text-amber-700',
-        border: 'border-amber-200',
+        classes: 'bg-amber-50 text-amber-700 border-amber-200',
         icon: WrenchScrewdriverIcon,
         label: 'In Wartung'
       },
       'OutOfService': {
-        bg: 'bg-red-50',
-        text: 'text-red-700', 
-        border: 'border-red-200',
+        classes: 'bg-red-50 text-red-700 border-red-200',
         icon: ExclamationTriangleIcon,
         label: 'Außer Betrieb'
       }
     };
 
     return configs[status as keyof typeof configs] || {
-      bg: 'bg-gray-50',
-      text: 'text-gray-700', 
-      border: 'border-gray-200',
+      classes: 'bg-gray-50 text-gray-700 border-gray-200',
       icon: CogIcon,
       label: status
     };
@@ -131,7 +124,8 @@ const MachineDetail = () => {
               <h1 className="text-2xl font-bold text-gray-900">{machine.number}</h1>
               <div className="flex items-center space-x-4 mt-1">
                 <span className="text-gray-600">{machine.type}</span>
-                <div className={`inline-flex items-center px-2 py-1 rounded-full border text-xs font-medium ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                {/* ✅ FIX: Statische Klassen verwenden */}
+                <div className={`inline-flex items-center px-2 py-1 rounded-full border text-xs font-medium ${statusConfig.classes}`}>
                   <StatusIcon className="h-3 w-3 mr-1" />
                   {statusConfig.label}
                 </div>
@@ -312,7 +306,7 @@ const MachineDetail = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Status:</span>
-                      <span className={`font-medium ${statusConfig.text}`}>{statusConfig.label}</span>
+                      <span className="font-medium text-green-700">{statusConfig.label}</span>
                     </div>
                   </div>
                   <div className="space-y-3">
