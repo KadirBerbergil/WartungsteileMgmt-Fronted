@@ -1,12 +1,13 @@
 // src/pages/machines/MachineList.tsx - VOLLSTÄNDIG ÜBERARBEITET mit Grid/Table Views
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMachines } from '../../hooks/useMachines';
+import { useMachines, useDeleteMachine } from '../../hooks/useMachines';
 import { 
   MagnifyingGlassIcon, 
   PlusIcon,
   EyeIcon,
   PencilIcon,
+  TrashIcon,
   CogIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -17,8 +18,7 @@ import {
   ListBulletIcon,
   ClockIcon,
   CalendarDaysIcon,
-  ArrowUpIcon,
-  ArrowDownIcon
+  ArrowUpIcon
 } from '@heroicons/react/24/outline';
 
 type ViewMode = 'grid' | 'table';
@@ -27,7 +27,11 @@ const MachineList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('table'); // Standard: Tabelle
+  const [machineToDelete, setMachineToDelete] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
   const { data: machines, isLoading, error } = useMachines();
+  const deleteMachine = useDeleteMachine();
 
   const filteredMachines = machines?.filter(machine => {
     const matchesSearch = machine.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -87,6 +91,35 @@ const MachineList = () => {
     if (hours > 1000) return { level: 'high', color: 'text-amber-600', bg: 'bg-amber-50', label: 'Hoch' };
     if (hours > 500) return { level: 'medium', color: 'text-blue-600', bg: 'bg-blue-50', label: 'Mittel' };
     return { level: 'low', color: 'text-green-600', bg: 'bg-green-50', label: 'Niedrig' };
+  };
+
+  // Delete handlers
+  const handleDeleteClick = (machineId: string) => {
+    setMachineToDelete(machineId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!machineToDelete) return;
+    
+    try {
+      await deleteMachine.mutateAsync(machineToDelete);
+      setShowDeleteModal(false);
+      setMachineToDelete(null);
+    } catch (error) {
+      console.error('Fehler beim Löschen der Maschine:', error);
+      // Error wird durch React Query Error Boundary behandelt
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setMachineToDelete(null);
+  };
+
+  const getMachineToDeleteInfo = () => {
+    if (!machineToDelete || !machines) return null;
+    return machines.find(m => m.id === machineToDelete);
   };
 
   if (isLoading) {
@@ -379,6 +412,13 @@ const MachineList = () => {
                             >
                               <PencilIcon className="h-4 w-4" />
                             </Link>
+                            <button
+                              onClick={() => handleDeleteClick(machine.id)}
+                              className="inline-flex items-center p-2 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Löschen"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -474,9 +514,17 @@ const MachineList = () => {
                     <Link 
                       to={`/machines/${machine.id}/edit`}
                       className="inline-flex items-center justify-center p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800 rounded-lg transition-colors"
+                      title="Bearbeiten"
                     >
                       <PencilIcon className="h-4 w-4" />
                     </Link>
+                    <button
+                      onClick={() => handleDeleteClick(machine.id)}
+                      className="inline-flex items-center justify-center p-2 bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
+                      title="Löschen"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               );
@@ -514,6 +562,95 @@ const MachineList = () => {
               </Link>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <TrashIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Maschine löschen</h3>
+                  <p className="text-sm text-gray-600 mt-1">Diese Aktion kann nicht rückgängig gemacht werden</p>
+                </div>
+              </div>
+
+              {getMachineToDeleteInfo() && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <CogIcon className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{getMachineToDeleteInfo()?.number}</p>
+                      <p className="text-sm text-gray-600">{getMachineToDeleteInfo()?.type}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Betriebsstunden:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {getMachineToDeleteInfo()?.operatingHours.toLocaleString()} h
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Status:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {getStatusConfig(getMachineToDeleteInfo()?.status || '').label}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-red-900 mb-1">Achtung!</h4>
+                    <ul className="text-sm text-red-800 space-y-1">
+                      <li>• Alle Maschinendaten werden permanent gelöscht</li>
+                      <li>• Wartungshistorie geht verloren</li>
+                      <li>• Magazin-Eigenschaften werden entfernt</li>
+                      <li>• Verknüpfte Wartungsteile bleiben erhalten</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  disabled={deleteMachine.isPending}
+                  className="flex-1 px-4 py-2 text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deleteMachine.isPending}
+                  className="flex-1 inline-flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {deleteMachine.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Wird gelöscht...</span>
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-4 w-4" />
+                      <span>Endgültig löschen</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
