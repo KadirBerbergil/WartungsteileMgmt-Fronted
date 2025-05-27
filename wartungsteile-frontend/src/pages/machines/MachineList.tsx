@@ -1,4 +1,4 @@
-// src/pages/machines/MachineList.tsx - Clean Professional Design - KORRIGIERT
+// src/pages/machines/MachineList.tsx - VOLLSTÄNDIG ÜBERARBEITET mit Grid/Table Views
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
@@ -12,12 +12,21 @@ import {
   ExclamationTriangleIcon,
   WrenchScrewdriverIcon,
   FunnelIcon,
-  DocumentArrowUpIcon
+  DocumentArrowUpIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+  ClockIcon,
+  CalendarDaysIcon,
+  ArrowUpIcon,
+  ArrowDownIcon
 } from '@heroicons/react/24/outline';
+
+type ViewMode = 'grid' | 'table';
 
 const MachineList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('table'); // Standard: Tabelle
   const { data: machines, isLoading, error } = useMachines();
 
   const filteredMachines = machines?.filter(machine => {
@@ -42,21 +51,24 @@ const MachineList = () => {
         text: 'text-green-700',
         border: 'border-green-200',
         icon: CheckCircleIcon,
-        label: 'Aktiv'
+        label: 'Aktiv',
+        dot: 'bg-green-500'
       },
       'InMaintenance': {
         bg: 'bg-amber-50', 
         text: 'text-amber-700',
         border: 'border-amber-200',
         icon: WrenchScrewdriverIcon,
-        label: 'In Wartung'
+        label: 'In Wartung',
+        dot: 'bg-amber-500'
       },
       'OutOfService': {
         bg: 'bg-red-50',
         text: 'text-red-700', 
         border: 'border-red-200',
         icon: ExclamationTriangleIcon,
-        label: 'Außer Betrieb'
+        label: 'Außer Betrieb',
+        dot: 'bg-red-500'
       }
     };
 
@@ -65,21 +77,26 @@ const MachineList = () => {
       text: 'text-gray-700', 
       border: 'border-gray-200',
       icon: CogIcon,
-      label: status
+      label: status,
+      dot: 'bg-gray-500'
     };
   };
 
   const getMaintenanceUrgency = (hours: number) => {
-    if (hours > 1500) return { level: 'critical', color: 'text-red-600', bg: 'bg-red-50' };
-    if (hours > 1000) return { level: 'high', color: 'text-amber-600', bg: 'bg-amber-50' };
-    if (hours > 500) return { level: 'medium', color: 'text-blue-600', bg: 'bg-blue-50' };
-    return { level: 'low', color: 'text-green-600', bg: 'bg-green-50' };
+    if (hours > 1500) return { level: 'critical', color: 'text-red-600', bg: 'bg-red-50', label: 'Kritisch' };
+    if (hours > 1000) return { level: 'high', color: 'text-amber-600', bg: 'bg-amber-50', label: 'Hoch' };
+    if (hours > 500) return { level: 'medium', color: 'text-blue-600', bg: 'bg-blue-50', label: 'Mittel' };
+    return { level: 'low', color: 'text-green-600', bg: 'bg-green-50', label: 'Niedrig' };
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-900">Maschinen werden geladen</h3>
+          <p className="text-gray-600">Daten werden zusammengestellt...</p>
+        </div>
       </div>
     );
   }
@@ -126,7 +143,7 @@ const MachineList = () => {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -166,19 +183,31 @@ const MachineList = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Wartung fällig</p>
-              <p className="text-2xl font-bold text-red-600">{stats.maintenanceDue}</p>
+              <p className="text-sm font-medium text-gray-600">Außer Betrieb</p>
+              <p className="text-2xl font-bold text-red-600">{stats.outOfService}</p>
             </div>
             <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
               <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
             </div>
           </div>
         </div>
+        
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Wartung fällig</p>
+              <p className="text-2xl font-bold text-orange-600">{stats.maintenanceDue}</p>
+            </div>
+            <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+              <ClockIcon className="h-5 w-5 text-orange-600" />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Search and Filter */}
+      {/* Search, Filter and View Toggle */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -210,96 +239,250 @@ const MachineList = () => {
               <FunnelIcon className="h-4 w-4" />
               <span>Filter</span>
             </button>
+
+            {/* ✨ NEW: View Mode Toggle */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`inline-flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'table' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <ListBulletIcon className="h-4 w-4" />
+                <span>Liste</span>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`inline-flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'grid' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Squares2X2Icon className="h-4 w-4" />
+                <span>Kacheln</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Machine Grid */}
+      {/* Content */}
       {filteredMachines && filteredMachines.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMachines.map((machine) => {
-            const statusConfig = getStatusConfig(machine.status);
-            const urgency = getMaintenanceUrgency(machine.operatingHours);
-            const StatusIcon = statusConfig.icon;
-            const daysSinceLastMaintenance = machine.lastMaintenanceDate 
-              ? Math.floor((Date.now() - new Date(machine.lastMaintenanceDate).getTime()) / (1000 * 60 * 60 * 24))
-              : null;
-            
-            return (
-              <div key={machine.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <CogIcon className="h-5 w-5 text-blue-600" />
+        viewMode === 'table' ? (
+          /* ✨ NEW: TABLE VIEW */
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Maschine
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Betriebsstunden
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Wartungsstatus
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Installation
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Letzte Wartung
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Aktionen
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMachines.map((machine) => {
+                    const statusConfig = getStatusConfig(machine.status);
+                    const urgency = getMaintenanceUrgency(machine.operatingHours);
+                    const StatusIcon = statusConfig.icon;
+                    const daysSinceLastMaintenance = machine.lastMaintenanceDate 
+                      ? Math.floor((Date.now() - new Date(machine.lastMaintenanceDate).getTime()) / (1000 * 60 * 60 * 24))
+                      : null;
+                    
+                    return (
+                      <tr key={machine.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                              <CogIcon className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <Link 
+                                to={`/machines/${machine.id}`}
+                                className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+                              >
+                                {machine.number}
+                              </Link>
+                              <div className="text-sm text-gray-500">{machine.type}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-2 h-2 rounded-full ${statusConfig.dot}`}></div>
+                            <span className={`text-sm font-medium ${statusConfig.text}`}>
+                              {statusConfig.label}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {machine.operatingHours.toLocaleString()} h
+                            </span>
+                            {machine.operatingHours > 1000 && (
+                              <div className={`flex items-center space-x-1 ${urgency.color}`}>
+                                <ArrowUpIcon className="h-3 w-3" />
+                                <span className="text-xs font-medium">{urgency.label}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${urgency.bg} ${urgency.color}`}>
+                            {urgency.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-2 text-sm text-gray-900">
+                            <CalendarDaysIcon className="h-4 w-4 text-gray-400" />
+                            {new Date(machine.installationDate).toLocaleDateString('de-DE')}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {daysSinceLastMaintenance !== null ? `vor ${daysSinceLastMaintenance}d` : '—'}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <Link 
+                              to={`/machines/${machine.id}`}
+                              className="inline-flex items-center p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                              title="Details anzeigen"
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </Link>
+                            <Link 
+                              to={`/machines/${machine.id}/edit`}
+                              className="inline-flex items-center p-2 text-gray-400 hover:text-green-600 transition-colors"
+                              title="Bearbeiten"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          /* EXISTING: GRID VIEW (improved) */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredMachines.map((machine) => {
+              const statusConfig = getStatusConfig(machine.status);
+              const urgency = getMaintenanceUrgency(machine.operatingHours);
+              const StatusIcon = statusConfig.icon;
+              const daysSinceLastMaintenance = machine.lastMaintenanceDate 
+                ? Math.floor((Date.now() - new Date(machine.lastMaintenanceDate).getTime()) / (1000 * 60 * 60 * 24))
+                : null;
+              
+              return (
+                <div key={machine.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <CogIcon className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <Link 
+                          to={`/machines/${machine.id}`}
+                          className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+                        >
+                          {machine.number}
+                        </Link>
+                        <p className="text-sm text-gray-600">{machine.type}</p>
+                      </div>
                     </div>
-                    <div>
-                      <Link 
-                        to={`/machines/${machine.id}`}
-                        className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-                      >
-                        {machine.number}
-                      </Link>
-                      <p className="text-sm text-gray-600">{machine.type}</p>
+                    
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${statusConfig.dot}`}></div>
+                      <span className={`text-xs font-medium ${statusConfig.text}`}>
+                        {statusConfig.label}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Metrics */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <p className="text-lg font-bold text-gray-900">{machine.operatingHours.toLocaleString()}</p>
+                      <p className="text-xs text-gray-600">Betriebsstunden</p>
+                      {machine.operatingHours > 1000 && (
+                        <div className={`flex items-center justify-center space-x-1 mt-1 ${urgency.color}`}>
+                          <ArrowUpIcon className="h-3 w-3" />
+                          <span className="text-xs font-medium">{urgency.label}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <p className="text-lg font-bold text-gray-900">
+                        {daysSinceLastMaintenance !== null ? `${daysSinceLastMaintenance}d` : '—'}
+                      </p>
+                      <p className="text-xs text-gray-600">Letzte Wartung</p>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Installation:</span>
+                      <span className="font-medium text-gray-900">
+                        {new Date(machine.installationDate).toLocaleDateString('de-DE')}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Wartungsstatus:</span>
+                      <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${urgency.bg} ${urgency.color}`}>
+                        <span>{urgency.label}</span>
+                      </span>
                     </div>
                   </div>
                   
-                  <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} border`}>
-                    <StatusIcon className="h-3 w-3" />
-                    <span>{statusConfig.label}</span>
+                  {/* Actions */}
+                  <div className="flex space-x-2">
+                    <Link 
+                      to={`/machines/${machine.id}`}
+                      className="flex-1 inline-flex items-center justify-center space-x-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <EyeIcon className="h-4 w-4" />
+                      <span>Details</span>
+                    </Link>
+                    <Link 
+                      to={`/machines/${machine.id}/edit`}
+                      className="inline-flex items-center justify-center p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800 rounded-lg transition-colors"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                    </Link>
                   </div>
                 </div>
-
-                {/* Metrics */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-lg font-bold text-gray-900">{machine.operatingHours.toLocaleString()}</p>
-                    <p className="text-xs text-gray-600">Betriebsstunden</p>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-lg font-bold text-gray-900">
-                      {daysSinceLastMaintenance !== null ? `${daysSinceLastMaintenance}d` : '—'}
-                    </p>
-                    <p className="text-xs text-gray-600">Letzte Wartung</p>
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Installation:</span>
-                    <span className="font-medium text-gray-900">
-                      {new Date(machine.installationDate).toLocaleDateString('de-DE')}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Wartungsstatus:</span>
-                    <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${urgency.bg} ${urgency.color}`}>
-                      <span className="capitalize">{urgency.level}</span>
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Actions */}
-                <div className="flex space-x-2">
-                  <Link 
-                    to={`/machines/${machine.id}`}
-                    className="flex-1 inline-flex items-center justify-center space-x-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <EyeIcon className="h-4 w-4" />
-                    <span>Details</span>
-                  </Link>
-                  <Link 
-                    to={`/machines/${machine.id}/edit`}
-                    className="inline-flex items-center justify-center p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800 rounded-lg transition-colors"
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <CogIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />

@@ -1,4 +1,4 @@
-// src/components/layout/Sidebar.tsx - Bereinigt ohne unused imports
+// src/components/layout/Sidebar.tsx - KORRIGIERT mit dynamischen Daten
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -10,13 +10,20 @@ import {
   DocumentArrowUpIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import { useMachines } from '../../hooks/useMachines';
+import { useMaintenanceParts } from '../../hooks/useParts';
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   
+  // ✅ FIX: Echte Daten laden statt hardcoded Zahlen
+  const { data: machines } = useMachines();
+  const { data: parts } = useMaintenanceParts();
+  
   const shouldShowLabels = isExpanded || isHovered;
 
+  // ✅ FIX: Dynamische Badge-Berechnung
   const navItems = [
     {
       to: "/",
@@ -28,19 +35,19 @@ const Sidebar = () => {
       to: "/machines",
       label: "Maschinen",
       icon: CogIcon,
-      badge: "12"
+      badge: machines ? machines.length.toString() : "0" // ✅ Echte Anzahl
     },
     {
       to: "/parts",
       label: "Wartungsteile", 
       icon: WrenchScrewdriverIcon,
-      badge: "156"
+      badge: parts ? parts.length.toString() : "0" // ✅ Echte Anzahl
     },
     {
       to: "/reports",
       label: "Berichte",
       icon: ClipboardDocumentListIcon,
-      badge: "3"
+      badge: "0" // ✅ Placeholder - später durch echte Berichte-API ersetzen
     }
   ];
 
@@ -126,7 +133,7 @@ const Sidebar = () => {
                   <span className="font-medium text-sm whitespace-nowrap">{item.label}</span>
                 </div>
                 
-                {/* Badge */}
+                {/* ✅ FIX: Badge mit echten Daten */}
                 {item.badge && shouldShowLabels && (
                   <div className={`ml-auto transition-all duration-300`}>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -143,6 +150,12 @@ const Sidebar = () => {
                 {!shouldShowLabels && (
                   <div className="absolute left-14 bg-gray-900 text-white px-2 py-1 rounded-md text-xs whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                     {item.label}
+                    {/* ✅ FIX: Badge auch im Tooltip anzeigen */}
+                    {item.badge && (
+                      <span className="ml-2 bg-gray-700 px-1 py-0.5 rounded text-xs">
+                        {item.badge}
+                      </span>
+                    )}
                     <div className="absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
                   </div>
                 )}
