@@ -1,4 +1,4 @@
-// src/components/layout/Sidebar.tsx - Modern Auto-Expand Sidebar
+// src/components/layout/Sidebar.tsx - Bereinigt ohne unused imports
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -8,7 +8,6 @@ import {
   Squares2X2Icon,
   PlusIcon,
   DocumentArrowUpIcon,
-  Bars3Icon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 
