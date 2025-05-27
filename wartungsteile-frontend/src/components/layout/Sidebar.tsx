@@ -1,108 +1,151 @@
-// src/components/layout/Sidebar.tsx - Premium Business Design
+// src/components/layout/Sidebar.tsx - Modern Auto-Expand Sidebar
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   CogIcon, 
   WrenchScrewdriverIcon,
   ClipboardDocumentListIcon,
-  Squares2X2Icon
+  Squares2X2Icon,
+  PlusIcon,
+  DocumentArrowUpIcon,
+  Bars3Icon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const shouldShowLabels = isExpanded || isHovered;
+
   const navItems = [
     {
       to: "/",
       label: "Dashboard",
       icon: Squares2X2Icon,
-      description: "Übersicht & Analytics"
+      badge: null
     },
     {
       to: "/machines",
       label: "Maschinen",
       icon: CogIcon,
-      description: "CNC-Lademagazine"
+      badge: "12"
     },
     {
       to: "/parts",
       label: "Wartungsteile", 
       icon: WrenchScrewdriverIcon,
-      description: "Ersatz- & Verschleißteile"
+      badge: "156"
     },
     {
       to: "/reports",
       label: "Berichte",
       icon: ClipboardDocumentListIcon,
-      description: "Analytics & Reports"
+      badge: "3"
+    }
+  ];
+
+  const quickActions = [
+    {
+      to: "/machines/create",
+      label: "Neue Maschine",
+      icon: PlusIcon,
+      color: "text-blue-500"
+    },
+    {
+      to: "/machines/upload", 
+      label: "PDF Import",
+      icon: DocumentArrowUpIcon,
+      color: "text-emerald-500"
     }
   ];
 
   return (
-    <div className="h-screen w-72 bg-white border-r border-slate-200/60 flex flex-col overflow-hidden shadow-xl shadow-slate-200/20">
-      {/* Premium Logo Header */}
-      <div className="px-8 py-8 border-b border-slate-100">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 via-indigo-700 to-slate-800 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
-              <CogIcon className="h-6 w-6 text-white" />
+    <div 
+      className={`h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out ${
+        shouldShowLabels ? 'w-64' : 'w-16'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Header */}
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-sm">
+              <CogIcon className="h-4 w-4 text-white" />
             </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full ring-2 ring-white shadow-sm"></div>
+            <div className={`transition-all duration-300 ${shouldShowLabels ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
+              <h1 className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                Service Center
+              </h1>
+              <p className="text-xs text-gray-500 whitespace-nowrap">Wartungssystem</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-              WartungsManager
-            </h1>
-            <p className="text-xs text-slate-500 font-medium">CNC Solutions Pro</p>
-          </div>
+          
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`p-1.5 rounded-lg hover:bg-gray-100 transition-all duration-200 ${
+              shouldShowLabels ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <ChevronRightIcon className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+              isExpanded ? 'rotate-180' : ''
+            }`} />
+          </button>
         </div>
       </div>
       
-      {/* Premium Navigation */}
-      <nav className="flex-1 px-6 py-8 space-y-2 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => (
           <NavLink 
             key={item.to}
             to={item.to} 
             className={({ isActive }) => 
-              `group relative flex items-center px-4 py-4 rounded-xl transition-all duration-200 ${
+              `group relative flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 ${
                 isActive 
-                  ? 'bg-gradient-to-r from-indigo-50 to-slate-50 text-indigo-700 shadow-sm border border-indigo-100/50' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-sm' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`
             }
             end={item.to === "/"}
           >
             {({ isActive }) => (
               <>
-                {/* Active indicator */}
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-600 to-indigo-700 rounded-full"></div>
-                )}
-                
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-4 transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-white shadow-sm border border-indigo-100' 
-                    : 'bg-slate-100/50 group-hover:bg-white group-hover:shadow-sm'
-                }`}>
-                  <item.icon className={`h-5 w-5 transition-colors duration-200 ${
-                    isActive ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700'
+                {/* Icon */}
+                <div className="flex-shrink-0">
+                  <item.icon className={`h-5 w-5 ${
+                    isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'
                   }`} />
                 </div>
                 
-                <div className="flex-1 min-w-0">
-                  <div className={`font-semibold text-sm transition-colors duration-200 ${
-                    isActive ? 'text-indigo-900' : 'text-slate-700 group-hover:text-slate-900'
-                  }`}>
-                    {item.label}
-                  </div>
-                  <div className={`text-xs mt-0.5 transition-colors duration-200 ${
-                    isActive ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-600'
-                  }`}>
-                    {item.description}
-                  </div>
+                {/* Label */}
+                <div className={`ml-3 transition-all duration-300 ${
+                  shouldShowLabels ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+                }`}>
+                  <span className="font-medium text-sm whitespace-nowrap">{item.label}</span>
                 </div>
                 
-                {/* Subtle arrow for active state */}
-                {isActive && (
-                  <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full opacity-60"></div>
+                {/* Badge */}
+                {item.badge && shouldShowLabels && (
+                  <div className={`ml-auto transition-all duration-300`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      isActive 
+                        ? 'bg-blue-200 text-blue-700' 
+                        : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Tooltip for collapsed state */}
+                {!shouldShowLabels && (
+                  <div className="absolute left-14 bg-gray-900 text-white px-2 py-1 rounded-md text-xs whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    {item.label}
+                    <div className="absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                  </div>
                 )}
               </>
             )}
@@ -110,36 +153,61 @@ const Sidebar = () => {
         ))}
       </nav>
       
-      {/* Premium Quick Actions */}
-      <div className="px-6 py-6 border-t border-slate-100 bg-gradient-to-r from-slate-50/50 to-transparent">
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-800">Quick Actions</h3>
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+      {/* Quick Actions */}
+      <div className="px-3 py-4 border-t border-gray-100">
+        <div className={`mb-3 transition-all duration-300 ${shouldShowLabels ? 'opacity-100' : 'opacity-0'}`}>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3">
+            Aktionen
+          </h3>
+        </div>
+        <div className="space-y-1">
+          {quickActions.map((action) => (
+            <NavLink
+              key={action.to}
+              to={action.to}
+              className="group relative flex items-center px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200"
+            >
+              <div className="flex-shrink-0">
+                <action.icon className={`h-5 w-5 ${action.color}`} />
+              </div>
+              
+              <div className={`ml-3 transition-all duration-300 ${
+                shouldShowLabels ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+              }`}>
+                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  {action.label}
+                </span>
+              </div>
+              
+              {/* Tooltip for collapsed state */}
+              {!shouldShowLabels && (
+                <div className="absolute left-14 bg-gray-900 text-white px-2 py-1 rounded-md text-xs whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  {action.label}
+                  <div className="absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+                </div>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </div>
+      
+      {/* System Status */}
+      <div className="px-3 py-3 border-t border-gray-100 bg-gray-50">
+        <div className={`flex items-center transition-all duration-300 ${
+          shouldShowLabels ? 'justify-between' : 'justify-center'
+        }`}>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <div className={`transition-all duration-300 ${
+              shouldShowLabels ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+            }`}>
+              <span className="text-xs font-medium text-gray-600 whitespace-nowrap">System Online</span>
+            </div>
           </div>
-          <div className="space-y-3">
-            <button className="w-full text-left group">
-              <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 transition-colors duration-150">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                  <CogIcon className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Neue Maschine</div>
-                  <div className="text-xs text-slate-500">CNC hinzufügen</div>
-                </div>
-              </div>
-            </button>
-            <button className="w-full text-left group">
-              <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 transition-colors duration-150">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-sm">
-                  <WrenchScrewdriverIcon className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Wartung planen</div>
-                  <div className="text-xs text-slate-500">Service einleiten</div>
-                </div>
-              </div>
-            </button>
+          <div className={`transition-all duration-300 ${
+            shouldShowLabels ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
+          }`}>
+            <span className="text-xs text-gray-500 whitespace-nowrap">v2.4.1</span>
           </div>
         </div>
       </div>
