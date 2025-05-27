@@ -5,7 +5,6 @@ import { useMachineDetail } from '../../hooks/useMachines';
 import MagazinePropertiesEditor from '../../components/MagazinePropertiesEditor';
 import MagazinePdfUpload from '../../components/MagazinePdfUpload';
 import { 
-  ArrowLeftIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
@@ -407,11 +406,11 @@ const MachineDetail = () => {
         </div>
       </div>
 
-      {/* PDF Upload Modal */}
+      {/* PDF Upload Modal - KORRIGIERTER PARAMETER */}
       {showPdfUpload && (
         <MagazinePdfUpload
           machine={machine}
-          onSuccess={(updatedMachine) => {
+          onSuccess={() => {
             setShowPdfUpload(false);
             // Machine data would be updated via React Query cache
           }}

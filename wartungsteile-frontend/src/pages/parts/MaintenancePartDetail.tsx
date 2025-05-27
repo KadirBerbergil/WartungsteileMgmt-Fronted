@@ -1,11 +1,10 @@
-// src/pages/parts/MaintenancePartDetail.tsx - Clean Professional Design
+// src/pages/parts/MaintenancePartDetail.tsx - Clean Professional Design - KORRIGIERT
 import { useParams, Link } from 'react-router-dom';
 import { useMaintenancePartDetail } from '../../hooks/useParts';
 import { 
   ExclamationTriangleIcon,
   CheckCircleIcon,
   PencilIcon,
-  ArrowLeftIcon,
   CubeIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,

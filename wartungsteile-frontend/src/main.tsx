@@ -1,4 +1,4 @@
-// src/main.tsx - React Query v5 kompatibel
+// src/main.tsx - React Query v5 kompatibel - KORRIGIERT
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -248,11 +248,11 @@ const initializeApp = () => {
   }
 };
 
-// ✅ DevTools Wrapper - Lazy Loading ohne harte Abhängigkeit
+// ✅ DevTools Wrapper - Lazy Loading ohne harte Abhängigkeit - KORRIGIERT
 const DevToolsWrapper = () => {
   try {
-    // Dynamisches Import für DevTools (optional)
-    import('@tanstack/react-query-devtools').then(({ ReactQueryDevtools }) => {
+    // Dynamisches Import für DevTools (optional) - UNUSED IMPORT ENTFERNT
+    import('@tanstack/react-query-devtools').then(() => {
       console.log('✅ React Query DevTools geladen');
       // DevTools werden automatisch gemountet
     }).catch(() => {

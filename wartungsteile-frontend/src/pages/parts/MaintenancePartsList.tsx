@@ -1,4 +1,4 @@
-// src/pages/parts/MaintenancePartsList.tsx - Korrekte Wartungsteile-Liste
+// src/pages/parts/MaintenancePartsList.tsx - Korrekte Wartungsteile-Liste - KORRIGIERT
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -11,9 +11,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
-  ChevronDownIcon,
   FunnelIcon,
-  TrashIcon,
   ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 

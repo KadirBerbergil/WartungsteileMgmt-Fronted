@@ -1,4 +1,4 @@
-// src/pages/machines/MachineList.tsx - Clean Professional Design
+// src/pages/machines/MachineList.tsx - Clean Professional Design - KORRIGIERT
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
@@ -11,11 +11,8 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   WrenchScrewdriverIcon,
-  ChevronDownIcon,
   FunnelIcon,
-  DocumentArrowUpIcon,
-  ClockIcon,
-  CalendarDaysIcon
+  DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
 
 const MachineList = () => {
