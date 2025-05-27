@@ -1,4 +1,4 @@
-// src/pages/dashboard/Dashboard.tsx - Professional Clean Dashboard
+// src/pages/dashboard/Dashboard.tsx - Typisierung korrigiert
 import { useNavigate } from 'react-router-dom';
 import { useMachines } from '../../hooks/useMachines';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -14,28 +14,29 @@ import {
   XCircleIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  EyeIcon,
   PlusIcon
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { data: machines, isLoading: machinesLoading } = useMachines();
-  const { data: parts, isLoading: partsLoading } = useMaintenanceParts();
+  const { data: machines, isLoading: machinesLoading, error: machinesError } = useMachines();
+  const { data: parts, isLoading: partsLoading, error: partsError } = useMaintenanceParts();
 
-  const machineStats = machines ? {
+  // ✅ Null-Safety: Sicherstellen dass machines ein Array ist
+  const machineStats = machines && Array.isArray(machines) ? {
     total: machines.length,
-    active: machines.filter(m => m.status === 'Active').length,
-    inMaintenance: machines.filter(m => m.status === 'InMaintenance').length,
-    outOfService: machines.filter(m => m.status === 'OutOfService').length,
-    maintenanceDue: machines.filter(m => m.operatingHours > 1000).length,
+    active: machines.filter(m => m?.status === 'Active').length,
+    inMaintenance: machines.filter(m => m?.status === 'InMaintenance').length,
+    outOfService: machines.filter(m => m?.status === 'OutOfService').length,
+    maintenanceDue: machines.filter(m => m?.operatingHours && m.operatingHours > 1000).length,
   } : { total: 0, active: 0, inMaintenance: 0, outOfService: 0, maintenanceDue: 0 };
 
-  const partStats = parts ? {
+  // ✅ Null-Safety: Sicherstellen dass parts ein Array ist
+  const partStats = parts && Array.isArray(parts) ? {
     total: parts.length,
-    lowStock: parts.filter(p => p.stockQuantity <= 3 && p.stockQuantity > 0).length,
-    outOfStock: parts.filter(p => p.stockQuantity === 0).length,
-    totalValue: parts.reduce((sum, p) => sum + (p.price * p.stockQuantity), 0)
+    lowStock: parts.filter(p => p?.stockQuantity !== undefined && p.stockQuantity <= 3 && p.stockQuantity > 0).length,
+    outOfStock: parts.filter(p => p?.stockQuantity === 0).length,
+    totalValue: parts.reduce((sum, p) => sum + ((p?.price || 0) * (p?.stockQuantity || 0)), 0)
   } : { total: 0, lowStock: 0, outOfStock: 0, totalValue: 0 };
 
   // Mock data for charts
@@ -54,10 +55,36 @@ const Dashboard = () => {
     { name: 'Defekt', value: machineStats.outOfService, color: '#EF4444' }
   ];
 
+  // ✅ Fehlerbehandlung für beide Hooks
+  if (machinesError || partsError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-600 mb-2">Fehler beim Laden der Daten</h3>
+          <p className="text-gray-600 mb-4">
+            {machinesError ? 'Maschinen konnten nicht geladen werden. ' : ''}
+            {partsError ? 'Wartungsteile konnten nicht geladen werden.' : ''}
+          </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Seite neu laden
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (machinesLoading || partsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Dashboard wird geladen</h3>
+          <p className="text-gray-600">Daten werden zusammengestellt...</p>
+        </div>
       </div>
     );
   }

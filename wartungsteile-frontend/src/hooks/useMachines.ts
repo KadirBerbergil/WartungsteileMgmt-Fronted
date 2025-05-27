@@ -1,4 +1,4 @@
-// src/hooks/useMachines.ts - Korrigierte und sichere Hooks
+// src/hooks/useMachines.ts - React Query v5 kompatibel
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { machineService } from '../services';
 import type { Machine, MachineDetail } from '../types/api';
@@ -10,9 +10,7 @@ export function useMachines() {
     staleTime: 1000 * 60 * 5, // 5 Minuten
     retry: 2,
     refetchOnWindowFocus: false,
-    onError: (error: any) => {
-      console.error('❌ Fehler beim Laden der Maschinen:', error);
-    }
+    // ✅ onError entfernt - React Query v5 verwendet Error Boundaries oder UI-Error-Handling
   });
 }
 
@@ -35,9 +33,7 @@ export function useMachineDetail(id: string) {
       return failureCount < 2;
     },
     refetchOnWindowFocus: false,
-    onError: (error: any) => {
-      console.error('❌ Fehler beim Laden der Maschinendetails für ID:', id, error);
-    }
+    // ✅ onError entfernt
   });
 }
 
@@ -54,9 +50,7 @@ export function useMachineByNumber(number: string) {
     staleTime: 1000 * 60 * 5, // 5 Minuten
     retry: 2,
     refetchOnWindowFocus: false,
-    onError: (error: any) => {
-      console.error('❌ Fehler beim Laden der Maschine für Nummer:', number, error);
-    }
+    // ✅ onError entfernt
   });
 }
 

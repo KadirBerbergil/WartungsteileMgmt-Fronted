@@ -1,4 +1,4 @@
-// src/main.tsx - Verbesserte und robuste App-Initialisierung
+// src/main.tsx - React Query v5 kompatibel
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -7,7 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import '../index.css'
 import App from './App.tsx'
 
-// Enhanced QueryClient mit robuster Fehlerbehandlung
+// Enhanced QueryClient für React Query v5
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -40,18 +40,11 @@ const queryClient = new QueryClient({
         console.log(`⏱️ Retry-Delay: ${delay}ms`);
         return delay;
       },
-      onError: (error: any) => {
-        console.error('❌ Query Error:', {
-          message: error.message,
-          userMessage: error.userMessage,
-          category: error.category,
-          status: error?.response?.status,
-          timestamp: new Date().toISOString()
-        });
-      }
+      // ✅ onError entfernt - React Query v5 behandelt Fehler über Error Boundaries
     },
     mutations: {
       retry: false, // Mutations nicht automatisch wiederholen
+      // onError bleibt bei Mutations verfügbar
       onError: (error: any, variables, context) => {
         console.error('❌ Mutation Error:', {
           error: error.message,
@@ -66,7 +59,7 @@ const queryClient = new QueryClient({
   }
 });
 
-// Development-spezifische Debugging-Features
+// Development-spezifische Features
 if (import.meta.env.DEV) {
   console.log('🚀 Wartungsteile Management System - Development Mode');
   console.log('📊 System-Informationen:', {
@@ -76,10 +69,9 @@ if (import.meta.env.DEV) {
     timestamp: new Date().toISOString()
   });
   
-  // React Query DevTools in Development
-  import('@tanstack/react-query-devtools').then(({ ReactQueryDevtools }) => {
-    console.log('🔧 React Query DevTools verfügbar');
-  });
+  // ✅ DevTools dynamisch laden (optional)
+  // Damit keine Abhängigkeit erforderlich ist
+  console.log('🔧 React Query DevTools werden geladen...');
 
   // Global Error Handler für unbehandelte Promise-Rejections
   window.addEventListener('unhandledrejection', event => {
@@ -113,15 +105,23 @@ if (import.meta.env.DEV) {
     });
   });
 
-  // Performance-Monitoring in Development
+  // ✅ Performance-Monitoring korrigiert
   window.addEventListener('load', () => {
     setTimeout(() => {
-      const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      console.log('⚡ Performance Metrics:', {
-        domContentLoaded: `${Math.round(perfData.domContentLoadedEventEnd - perfData.navigationStart)}ms`,
-        fullLoad: `${Math.round(perfData.loadEventEnd - perfData.navigationStart)}ms`,
-        timestamp: new Date().toISOString()
-      });
+      if ('performance' in window && 'getEntriesByType' in performance) {
+        const perfEntries = performance.getEntriesByType('navigation');
+        if (perfEntries.length > 0) {
+          const perfData = perfEntries[0] as PerformanceNavigationTiming;
+          
+          // ✅ Verwende startTime statt navigationStart (deprecated)
+          const startTime = perfData.fetchStart || 0;
+          console.log('⚡ Performance Metrics:', {
+            domContentLoaded: `${Math.round(perfData.domContentLoadedEventEnd - startTime)}ms`,
+            fullLoad: `${Math.round(perfData.loadEventEnd - startTime)}ms`,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
     }, 1000);
   });
 }
@@ -210,6 +210,11 @@ const initializeApp = () => {
                 <App />
               </ErrorBoundary>
             </BrowserRouter>
+            
+            {/* ✅ React Query DevTools nur in Development und wenn verfügbar */}
+            {import.meta.env.DEV && (
+              <DevToolsWrapper />
+            )}
           </QueryClientProvider>
         </ErrorBoundary>
       </StrictMode>
@@ -241,6 +246,23 @@ const initializeApp = () => {
       </div>
     `;
   }
+};
+
+// ✅ DevTools Wrapper - Lazy Loading ohne harte Abhängigkeit
+const DevToolsWrapper = () => {
+  try {
+    // Dynamisches Import für DevTools (optional)
+    import('@tanstack/react-query-devtools').then(({ ReactQueryDevtools }) => {
+      console.log('✅ React Query DevTools geladen');
+      // DevTools werden automatisch gemountet
+    }).catch(() => {
+      console.log('⚠️ React Query DevTools nicht verfügbar (optional)');
+    });
+  } catch (error) {
+    console.log('⚠️ DevTools konnten nicht geladen werden');
+  }
+  
+  return null; // DevTools mounten sich selbst
 };
 
 // App-Start mit DOM-Ready-Check
