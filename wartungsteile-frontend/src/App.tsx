@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/dashboard/Dashboard'
 import MachineList from './pages/machines/MachineList'
+import MachineCreate from './pages/machines/MachineCreate'  // ✅ HINZUGEFÜGT
 import MachineDetail from './pages/machines/MachineDetail'
 import MachineMaintenancePartsList from './pages/machines/MachineMaintenancePartsList'
 import MachineMaintenanceWorkflow from './pages/machines/MachineMaintenanceWorkflow'
@@ -22,6 +23,7 @@ function App() {
         {/* Maschinen-Routen */}
         <Route path="machines">
           <Route index element={<MachineList />} />
+          <Route path="create" element={<MachineCreate />} />  {/* ✅ HINZUGEFÜGT - WICHTIG: VOR :id Route! */}
           <Route path="upload" element={<PdfUploadExtractor />} />
           <Route path=":id" element={<MachineDetail />} />
           <Route path=":id/parts" element={<MachineMaintenancePartsList />} />
