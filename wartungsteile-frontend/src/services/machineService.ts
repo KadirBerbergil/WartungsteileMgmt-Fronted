@@ -194,7 +194,17 @@ export const machineService = {
     });
     
     try {
-      const response = await api.put(`/Machines/${machineId}/magazine`, properties);
+      // ✅ Erstelle vollständiges Command-Objekt mit machineId
+      const commandData = {
+        machineId: machineId,
+        ...properties,
+        lastUpdated: new Date().toISOString(),
+        updatedBy: "Frontend-User" // TODO: Echten User aus Auth Context nehmen
+      };
+
+      console.log('📤 Sende Request:', commandData);
+      
+      const response = await api.put(`/Machines/${machineId}/magazine`, commandData);
       
       // ✅ Null-Safety: response.data könnte undefined sein
       const responseData = response.data ?? {};
@@ -208,8 +218,23 @@ export const machineService = {
       return result;
       
     } catch (error: any) {
-      console.error('❌ Fehler beim Aktualisieren der Magazin-Eigenschaften:', error);
-      throw error;
+      console.error('❌ Fehler beim Aktualisieren der Magazin-Eigenschaften:', {
+        machineId,
+        error: error.response?.data || error.message,
+        status: error.response?.status
+      });
+      
+      // ✅ Bessere Fehlerbehandlung mit spezifischen Meldungen
+      if (error.response?.status === 404) {
+        throw new Error(`Maschine mit ID ${machineId} nicht gefunden`);
+      } else if (error.response?.status === 400) {
+        const errorDetails = error.response?.data?.errors || error.response?.data?.message || 'Unbekannter Validierungsfehler';
+        throw new Error(`Validierungsfehler: ${JSON.stringify(errorDetails)}`);
+      } else if (error.response?.status >= 500) {
+        throw new Error('Serverfehler beim Speichern der Magazin-Eigenschaften');
+      } else {
+        throw new Error(error.response?.data?.message || error.message || 'Unbekannter Fehler beim Speichern');
+      }
     }
   },
 
@@ -411,6 +436,53 @@ export const machineService = {
         errors.push('Materialstangenlänge muss zwischen 0 und 10.000 mm liegen');
       }
     }
+
+    // ✅ NEUE: Benutzerfreundliche Farb-Validierung
+    const validateColor = (colorValue: string | undefined, fieldName: string) => {
+      if (!colorValue || colorValue.trim() === '') {
+        return; // Leere Werte sind OK
+      }
+      
+      const color = colorValue.trim();
+      
+      // RAL-Codes: RAL 1000, RAL 9016, etc.
+      const ralPattern = /^RAL\s*\d{4}$/i;
+      
+      // Munsell Colors: Munsell Gray Color, Munsell White Color, etc.
+      const munsellPattern = /^Munsell\s+\w+\s+Color$/i;
+      
+      // Deutsche und englische Standardfarben (sehr tolerant)
+      const standardColors = [
+        // Deutsche Farben
+        'weiß', 'weiss', 'schwarz', 'grau', 'rot', 'blau', 'grün', 'gelb',
+        'orange', 'violett', 'lila', 'braun', 'silber', 'gold', 'beige',
+        'rosa', 'pink', 'türkis', 'cyan', 'magenta', 'hellgrau', 'dunkelgrau',
+        'hellblau', 'dunkelblau', 'hellgrün', 'dunkelgrün', 'hellrot', 'dunkelrot',
+        
+        // Englische Farben
+        'white', 'black', 'gray', 'grey', 'red', 'blue', 'green', 'yellow',
+        'orange', 'purple', 'violet', 'brown', 'silver', 'gold', 'beige',
+        'pink', 'turquoise', 'cyan', 'magenta', 'light gray', 'dark gray',
+        'light blue', 'dark blue', 'light green', 'dark green', 'light red', 'dark red'
+      ];
+      
+      // Sehr tolerante Validierung - akzeptiert fast alles was nach Farbe aussieht
+      const isValidColor = 
+        ralPattern.test(color) || 
+        munsellPattern.test(color) ||
+        standardColors.some(c => color.toLowerCase().includes(c.toLowerCase())) ||
+        color.length >= 3; // Mindestens 3 Zeichen für Farbnamen
+      
+      if (!isValidColor) {
+        warnings.push(`${fieldName}: "${color}" - Bitte verwenden Sie erkennbare Farbnamen, RAL-Codes oder Munsell-Farben.`);
+      }
+    };
+
+    // Alle Farbfelder validieren
+    validateColor(properties.baseColor, 'Grundfarbe');
+    validateColor(properties.coverColor, 'Abdeckungsfarbe');
+    validateColor(properties.switchCabinetColor, 'Schaltschrankfarbe');
+    validateColor(properties.controlPanelColor, 'Bedienfeld-Farbe');
 
     // Produktionswoche Format prüfen
     if (properties.productionWeek && !properties.productionWeek.match(/^\d{1,2}\/\d{4}$/)) {
