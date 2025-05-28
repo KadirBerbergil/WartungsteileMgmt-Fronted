@@ -13,8 +13,7 @@ import {
   CogIcon,
   CalendarDaysIcon,
   WrenchScrewdriverIcon,
-  ClockIcon,
-  InformationCircleIcon
+  ClockIcon
 } from '@heroicons/react/24/outline';
 
 interface FormData {
