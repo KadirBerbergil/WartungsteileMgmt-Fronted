@@ -1,9 +1,11 @@
-// src/pages/machines/MachineDetail.tsx - KORRIGIERTE VERSION mit fixen Tailwind-Klassen
-import { useState } from 'react';
+// src/pages/machines/MachineDetail.tsx - REPARIERTE VERSION mit onUpdate Handler
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMachineDetail } from '../../hooks/useMachines';
+import { useQueryClient } from '@tanstack/react-query';
 import MagazinePropertiesEditor from '../../components/MagazinePropertiesEditor';
 import MagazinePdfUpload from '../../components/MagazinePdfUpload';
+import type { MachineDetail as MachineDetailType } from '../../types/api';
 import { 
   ExclamationTriangleIcon,
   CheckCircleIcon,
@@ -24,8 +26,35 @@ const MachineDetail = () => {
   const { data: machine, isLoading, error } = useMachineDetail(id || '');
   const [showPdfUpload, setShowPdfUpload] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'properties' | 'maintenance'>('overview');
+  
+  // ✅ NEU: Local state für aktualisierte Machine-Daten
+  const [localMachine, setLocalMachine] = useState<MachineDetailType | null>(null);
+  const queryClient = useQueryClient();
 
-  // ✅ FIX: Statische Tailwind-Klassen statt dynamischer
+  // ✅ NEU: Sync localMachine mit server data
+  useEffect(() => {
+    if (machine) {
+      console.log('🔄 MachineDetail: Aktualisiere localMachine mit server data:', machine);
+      setLocalMachine(machine);
+    }
+  }, [machine]);
+
+  // ✅ NEU: Handler für Magazine Properties Updates
+  const handleMagazinePropertiesUpdate = (updatedMachine: MachineDetailType) => {
+    console.log('🔄 MachineDetail: onUpdate called mit:', updatedMachine);
+    
+    // Sofort local state aktualisieren
+    setLocalMachine(updatedMachine);
+    
+    // Zusätzlich: Query Cache manuell aktualisieren
+    queryClient.setQueryData(['machine', id], updatedMachine);
+    
+    console.log('✅ MachineDetail: Local state und cache aktualisiert');
+  };
+
+  // ✅ Verwende localMachine falls verfügbar, sonst fallback auf machine
+  const currentMachine = localMachine || machine;
+
   const getStatusConfig = (status: string) => {
     const configs = {
       'Active': {
@@ -69,7 +98,7 @@ const MachineDetail = () => {
     );
   }
 
-  if (error || !machine) {
+  if (error || !currentMachine) {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-3">
@@ -94,10 +123,10 @@ const MachineDetail = () => {
     );
   }
 
-  const statusConfig = getStatusConfig(machine.status);
+  const statusConfig = getStatusConfig(currentMachine.status);
   const StatusIcon = statusConfig.icon;
-  const daysSinceLastMaintenance = machine.lastMaintenanceDate 
-    ? Math.floor((Date.now() - new Date(machine.lastMaintenanceDate).getTime()) / (1000 * 60 * 60 * 24))
+  const daysSinceLastMaintenance = currentMachine.lastMaintenanceDate 
+    ? Math.floor((Date.now() - new Date(currentMachine.lastMaintenanceDate).getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
   return (
@@ -120,10 +149,9 @@ const MachineDetail = () => {
               <CogIcon className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{machine.number}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{currentMachine.number}</h1>
               <div className="flex items-center space-x-4 mt-1">
-                <span className="text-gray-600">{machine.type}</span>
-                {/* ✅ FIX: Statische Klassen verwenden */}
+                <span className="text-gray-600">{currentMachine.type}</span>
                 <div className={`inline-flex items-center px-2 py-1 rounded-full border text-xs font-medium ${statusConfig.classes}`}>
                   <StatusIcon className="h-3 w-3 mr-1" />
                   {statusConfig.label}
@@ -158,7 +186,7 @@ const MachineDetail = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Betriebsstunden</p>
-              <p className="text-2xl font-bold text-gray-900">{machine.operatingHours.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{currentMachine.operatingHours.toLocaleString()}</p>
             </div>
             <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
               <ClockIcon className="h-5 w-5 text-blue-600" />
@@ -171,7 +199,7 @@ const MachineDetail = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Installation</p>
               <p className="text-lg font-bold text-gray-900">
-                {new Date(machine.installationDate).toLocaleDateString('de-DE')}
+                {new Date(currentMachine.installationDate).toLocaleDateString('de-DE')}
               </p>
             </div>
             <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
@@ -184,7 +212,7 @@ const MachineDetail = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Wartungen</p>
-              <p className="text-2xl font-bold text-gray-900">{machine.maintenanceCount}</p>
+              <p className="text-2xl font-bold text-gray-900">{currentMachine.maintenanceCount}</p>
             </div>
             <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
               <WrenchScrewdriverIcon className="h-5 w-5 text-purple-600" />
@@ -297,11 +325,11 @@ const MachineDetail = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Maschinennummer:</span>
-                      <span className="font-medium text-gray-900">{machine.number}</span>
+                      <span className="font-medium text-gray-900">{currentMachine.number}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Typ:</span>
-                      <span className="font-medium text-gray-900">{machine.type}</span>
+                      <span className="font-medium text-gray-900">{currentMachine.type}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Status:</span>
@@ -311,17 +339,17 @@ const MachineDetail = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Betriebsstunden:</span>
-                      <span className="font-medium text-gray-900">{machine.operatingHours.toLocaleString()} h</span>
+                      <span className="font-medium text-gray-900">{currentMachine.operatingHours.toLocaleString()} h</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Installation:</span>
                       <span className="font-medium text-gray-900">
-                        {new Date(machine.installationDate).toLocaleDateString('de-DE')}
+                        {new Date(currentMachine.installationDate).toLocaleDateString('de-DE')}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Wartungen:</span>
-                      <span className="font-medium text-gray-900">{machine.maintenanceCount}</span>
+                      <span className="font-medium text-gray-900">{currentMachine.maintenanceCount}</span>
                     </div>
                   </div>
                 </div>
@@ -329,9 +357,12 @@ const MachineDetail = () => {
             </div>
           )}
 
-          {/* Properties Tab */}
+          {/* ✅ REPARIERT: Properties Tab mit onUpdate Handler */}
           {activeTab === 'properties' && (
-            <MagazinePropertiesEditor machine={machine} />
+            <MagazinePropertiesEditor 
+              machine={currentMachine} 
+              onUpdate={handleMagazinePropertiesUpdate}
+            />
           )}
 
           {/* Maintenance Tab */}
@@ -348,9 +379,9 @@ const MachineDetail = () => {
                 </Link>
               </div>
 
-              {machine.maintenanceRecords && machine.maintenanceRecords.length > 0 ? (
+              {currentMachine.maintenanceRecords && currentMachine.maintenanceRecords.length > 0 ? (
                 <div className="space-y-4">
-                  {machine.maintenanceRecords.map((record) => (
+                  {currentMachine.maintenanceRecords.map((record) => (
                     <div key={record.id} className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
@@ -406,13 +437,12 @@ const MachineDetail = () => {
         </div>
       </div>
 
-      {/* PDF Upload Modal - KORRIGIERTER PARAMETER */}
+      {/* PDF Upload Modal */}
       {showPdfUpload && (
         <MagazinePdfUpload
-          machine={machine}
+          machine={currentMachine}
           onSuccess={() => {
             setShowPdfUpload(false);
-            // Machine data would be updated via React Query cache
           }}
           onClose={() => setShowPdfUpload(false)}
         />

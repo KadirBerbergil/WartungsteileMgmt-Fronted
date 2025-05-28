@@ -1,5 +1,5 @@
-// src/components/MagazinePropertiesEditor.tsx - REPARIERTE VERSION
-import { useState, useEffect } from 'react';
+// src/components/MagazinePropertiesEditor.tsx - KOMPLETT REPARIERTE VERSION
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { machineService } from '../services';
 import type { 
@@ -47,10 +47,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   
   const [formData, setFormData] = useState<UpdateMagazinePropertiesCommand>({});
   const [originalData, setOriginalData] = useState<UpdateMagazinePropertiesCommand>({});
-  
-  // ✅ REPARIERTE VOLLSTÄNDIGKEITS-BERECHNUNG - basiert auf formData statt machine
-  const calculateCompleteness = () => {
-    if (!formData) return { completeness: 0, totalFields: 0, filledFields: 0, hasBasicData: false, hasExtendedData: false };
+
+  // ✅ REPARIERT: useMemo für Performance-optimierte Vollständigkeits-Berechnung
+  const completenessData = useMemo(() => {
+    console.log('🧮 Berechne Vollständigkeit basierend auf formData:', formData);
     
     // Hilfsfunktion um zu prüfen ob ein Feld ausgefüllt ist
     const isFieldFilled = (value: any): boolean => {
@@ -61,7 +61,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       return true;
     };
 
-    // ✅ VERWENDE formData STATT machine - das enthält die aktuellen UI-Werte!
     const fieldGroups = [
       // Basic (5 Felder)
       { 
@@ -147,7 +146,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     let filledFields = 0;
     let basicFilledFields = 0;
 
-    // Alle Gruppen durchgehen mit Debug-Info
     fieldGroups.forEach((group, groupIndex) => {
       let groupFilled = 0;
       group.fields.forEach(fieldValue => {
@@ -155,28 +153,18 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         if (isFieldFilled(fieldValue)) {
           filledFields++;
           groupFilled++;
-          // Erste Gruppe = Basis-Eigenschaften
           if (groupIndex === 0) {
             basicFilledFields++;
           }
         }
       });
-      console.log(`  ${group.name}: ${groupFilled}/${group.fields.length} ausgefüllt`);
     });
 
     const completeness = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
-    const hasBasicData = basicFilledFields >= 3; // Mindestens 3 von 5 Basis-Feldern
-    const hasExtendedData = filledFields > basicFilledFields; // Mehr als nur Basis-Felder
+    const hasBasicData = basicFilledFields >= 3;
+    const hasExtendedData = filledFields > basicFilledFields;
 
-    // Debug-Ausgabe für Verifikation
-    console.log(`🧮 KORREKTE Vollständigkeits-Berechnung (basiert auf formData):`, {
-      totalFields,
-      filledFields,
-      basicFilledFields,
-      completeness: `${completeness}%`,
-      hasBasicData,
-      hasExtendedData
-    });
+    console.log(`✅ Vollständigkeit: ${completeness}% (${filledFields}/${totalFields})`);
 
     return {
       completeness,
@@ -185,12 +173,13 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       hasBasicData,
       hasExtendedData
     };
-  };
+  }, [formData]); // ✅ Nur abhängig von formData
 
-  // ✅ DIREKTE BERECHNUNG
-  const completenessData = calculateCompleteness();
-
+  // ✅ REPARIERT: Saubere Initialisierung mit useEffect - reagiert auf machine Änderungen
   useEffect(() => {
+    console.log('🔄 Initialisiere formData mit machine:', machine);
+    console.log('🔄 Machine ID:', machine.id, 'Keys:', Object.keys(machine));
+    
     const initialData: UpdateMagazinePropertiesCommand = {
       // Basic
       magazineType: machine.magazineType || '',
@@ -242,22 +231,33 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       magazinePropertiesNotes: machine.magazinePropertiesNotes || ''
     };
     
+    console.log('📝 Setze initialData:', initialData);
     setFormData(initialData);
     setOriginalData(initialData);
-    // ✅ loadCompletenessData() entfernt - wird jetzt direkt berechnet
-  }, [machine]);
+    
+    // ✅ WICHTIG: Reset editing state wenn neue machine data kommt
+    if (isEditing) {
+      console.log('🔄 Neue Machine-Daten empfangen, beende Edit-Modus');
+      setIsEditing(false);
+    }
+  }, [machine, machine.id]); // ✅ Abhängig von gesamtem machine Objekt UND machine.id
 
-  // ✅ REPARIERTE loadCompletenessData entfernt - nicht mehr nötig
-
-  const handleInputChange = (field: keyof UpdateMagazinePropertiesCommand, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // ✅ REPARIERT: useCallback für optimierte Handler
+  const handleInputChange = useCallback((field: keyof UpdateMagazinePropertiesCommand, value: any) => {
+    console.log(`📝 Ändere Feld "${field}" zu:`, value);
+    
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+      console.log('📝 Neuer formData:', updated);
+      return updated;
+    });
     setSaveError(null);
-  };
+  }, []);
 
-  const toggleGroup = (groupName: string) => {
+  const toggleGroup = useCallback((groupName: string) => {
     setExpandedGroups(prev => {
       const newSet = new Set(prev);
       if (newSet.has(groupName)) {
@@ -267,54 +267,83 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleSave = async () => {
+  // ✅ REPARIERT: Verbesserte Save-Logik mit Debugging
+  const handleSave = useCallback(async () => {
+    console.log('💾 SAVE: Starte Speichervorgang...');
+    console.log('💾 SAVE: formData zu speichern:', formData);
+    
     setSaving(true);
     setSaveError(null);
     
     try {
-      // ✅ Vereinfachte Validierung (falls machineService.validateMagazineProperties nicht existiert)
+      // ✅ Vereinfachte Validierung
       const hasRequiredFields = formData.magazineType && formData.magazineType.trim().length > 0;
       if (!hasRequiredFields) {
-        setSaveError('Mindestens der Magazin-Typ muss angegeben werden');
+        const error = 'Mindestens der Magazin-Typ muss angegeben werden';
+        console.log('❌ SAVE: Validierung fehlgeschlagen:', error);
+        setSaveError(error);
         return;
       }
       
+      console.log('💾 SAVE: Sende API Request...');
+      console.log('💾 SAVE: Request URL:', `/machines/${machine.id}/magazine-properties`);
+      console.log('💾 SAVE: Request Body:', JSON.stringify(formData, null, 2));
+      
       const result = await machineService.updateMagazineProperties(machine.id, formData);
+      console.log('💾 SAVE: API Response:', result);
       
       if (result.success) {
-        setOriginalData(formData);
+        console.log('✅ SAVE: Erfolgreich gespeichert');
+        setOriginalData({ ...formData }); // ✅ Kopie erstellen
         setIsEditing(false);
         
-        // ✅ Keine loadCompletenessData mehr nötig - automatische Neuberechnung
-        queryClient.invalidateQueries({ queryKey: ['machine', machine.id] });
+        // ✅ REPARIERT: Cache sofort invalidieren UND warten bis refresh fertig ist
+        console.log('🔄 SAVE: Invalidiere Cache und warte auf Refresh...');
+        await queryClient.invalidateQueries({ queryKey: ['machine', machine.id] });
+        
+        // ✅ ZUSÄTZLICH: Refetch erzwingen um sicherzustellen dass neue Daten geladen werden
+        await queryClient.refetchQueries({ queryKey: ['machine', machine.id] });
         
         if (onUpdate) {
           const updatedMachine = { ...machine, ...formData };
+          console.log('🔄 SAVE: Rufe onUpdate auf mit:', updatedMachine);
           onUpdate(updatedMachine);
         }
+        
+        console.log('✅ SAVE: Cache-Refresh abgeschlossen');
       } else {
-        setSaveError('Unbekannter Fehler beim Speichern');
+        const error = 'Unbekannter Fehler beim Speichern';
+        console.log('❌ SAVE: API Fehler:', error);
+        setSaveError(error);
       }
       
     } catch (error: any) {
-      setSaveError(error.response?.data?.message || error.message);
+      console.log('❌ SAVE: Exception:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Unbekannter Fehler';
+      setSaveError(errorMessage);
     } finally {
       setSaving(false);
     }
-  };
+  }, [formData, machine.id, machine, onUpdate, queryClient]);
 
-  const handleCancel = () => {
-    setFormData(originalData);
+  const handleCancel = useCallback(() => {
+    console.log('❌ CANCEL: Breche Bearbeitung ab');
+    setFormData({ ...originalData }); // ✅ Kopie erstellen
     setIsEditing(false);
     setSaveError(null);
-  };
+  }, [originalData]);
 
-  const hasChanges = JSON.stringify(formData) !== JSON.stringify(originalData);
+  // ✅ REPARIERT: Verbesserte Change Detection
+  const hasChanges = useMemo(() => {
+    const changes = JSON.stringify(formData) !== JSON.stringify(originalData);
+    console.log('🔍 hasChanges:', changes);
+    return changes;
+  }, [formData, originalData]);
 
-  // DEZENTES FIELD RENDERING - Professionell und subtil
-  const renderField = (field: any) => {
+  // FIELD RENDERING (unverändert, aber optimiert)
+  const renderField = useCallback((field: any) => {
     const value = formData[field.key as keyof UpdateMagazinePropertiesCommand];
     const isEmpty = !value || (typeof value === 'string' && value.trim() === '') || value === 0;
     
@@ -340,7 +369,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         </label>
         
         {isEditing ? (
-          // EDITING MODE - Saubere Inputs
           <div>
             {field.type === 'boolean' ? (
               <div className="flex items-center space-x-3 p-3 bg-white border border-gray-200 rounded hover:border-gray-300 transition-colors">
@@ -391,7 +419,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
             )}
           </div>
         ) : (
-          // DISPLAY MODE - Dezent und professionell
           <div className={`group cursor-pointer border transition-all ${
             isEmpty 
               ? 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300' 
@@ -400,7 +427,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
             
             <div className="flex items-center justify-between p-3">
               <div className="flex items-center space-x-3 flex-1">
-                {/* Subtiler Status-Indikator */}
                 <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   isEmpty ? 'bg-amber-400' : 'bg-green-500'
                 }`}></div>
@@ -422,7 +448,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 </div>
               </div>
               
-              {/* Dezenter Edit-Hinweis */}
               {!readonly && (
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <PencilIcon className="w-4 h-4 text-gray-400" />
@@ -430,7 +455,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
               )}
             </div>
             
-            {/* Dezenter Hinweis für leere Felder */}
             {isEmpty && !readonly && (
               <div className="px-3 pb-3">
                 <p className="text-xs text-gray-500">
@@ -442,10 +466,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         )}
       </div>
     );
-  };
+  }, [formData, showEmptyFields, isEditing, readonly, handleInputChange]);
 
-  // DEZENTE GRUPPEN-DARSTELLUNG
-  const renderGroup = (groupKey: string, group: any) => {
+  // GROUP RENDERING (vereinfacht für bessere Performance)
+  const renderGroup = useCallback((groupKey: string, group: any) => {
     const isExpanded = expandedGroups.has(groupKey);
     const GroupIcon = group.icon;
 
@@ -460,7 +484,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
     return (
       <div key={groupKey} className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden">
         
-        {/* Dezenter Group Header */}
         <button
           onClick={() => toggleGroup(groupKey)}
           className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -493,7 +516,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           </div>
           
           <div className="flex items-center space-x-3">
-            {/* Dezenter Status-Indikator */}
             <div className={`w-3 h-3 rounded-full ${
               completionPercentage === 100 
                 ? 'bg-green-500' 
@@ -507,11 +529,9 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           </div>
         </button>
         
-        {/* Group Content */}
         {isExpanded && (
           <div className="px-6 pb-6 bg-gray-50">
             
-            {/* Dezenter Progress Bar */}
             <div className="mb-6 pt-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">Fortschritt</span>
@@ -531,12 +551,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
               </div>
             </div>
             
-            {/* Fields Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {group.fields.map((field: any) => renderField(field))}
             </div>
             
-            {/* Dezenter Hinweis für leere Gruppen */}
             {isEmpty && !isEditing && !readonly && (
               <div className="mt-6 p-4 bg-white border border-gray-200 rounded">
                 <div className="flex items-center justify-between">
@@ -564,7 +582,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         )}
       </div>
     );
-  };
+  }, [expandedGroups, formData, toggleGroup, renderField, isEditing, readonly]);
 
   // Field Groups Definition (unverändert)
   const fieldGroups = {
@@ -655,7 +673,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* DEZENTER HEADER - Professionell und zurückhaltend */}
+      {/* HEADER */}
       <div className="bg-white border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -728,7 +746,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         </div>
       </div>
 
-      {/* ✅ KOMPLETT REPARIERTE COMPLETENESS INDICATOR */}
+      {/* ✅ REPARIERTE COMPLETENESS INDICATOR */}
       <div className="bg-white border border-gray-200 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
@@ -750,7 +768,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           </div>
         </div>
         
-        {/* Professioneller Progress Bar */}
         <div className="w-full bg-gray-200 h-2 mb-4">
           <div 
             className="bg-gray-700 h-2 transition-all duration-500"
@@ -780,7 +797,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
               : 'text-gray-600 bg-gray-50'
           }`}>
             {completenessData.hasExtendedData ? (
-              <CheckCircleIcon className="w-4 w-4" />
+              <CheckCircleIcon className="w-4 h-4" />
             ) : (
               <InformationCircleIcon className="w-4 h-4" />
             )}
@@ -791,7 +808,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
         </div>
       </div>
 
-      {/* Error Display */}
+      {/* ✅ VERBESSERTE ERROR DISPLAY */}
       {saveError && (
         <div className="bg-red-50 border border-red-200 p-4">
           <div className="flex items-start space-x-3">
@@ -801,12 +818,31 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
             <div>
               <p className="text-red-900 font-medium">Fehler beim Speichern</p>
               <p className="text-red-800 mt-1">{saveError}</p>
+              <button
+                onClick={() => setSaveError(null)}
+                className="text-red-600 hover:text-red-700 text-sm font-medium mt-2"
+              >
+                Schließen
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* PROPERTY GROUPS - Dezent und professionell */}
+      {/* ✅ DEBUG INFO (nur im Development) */}
+      {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
+        <div className="bg-yellow-50 border border-yellow-200 p-4 text-xs">
+          <h4 className="font-medium text-yellow-900 mb-2">Debug Info</h4>
+          <div className="space-y-1 text-yellow-800">
+            <p>hasChanges: {hasChanges ? 'true' : 'false'}</p>
+            <p>isEditing: {isEditing ? 'true' : 'false'}</p>
+            <p>isSaving: {isSaving ? 'true' : 'false'}</p>
+            <p>completeness: {completenessData.completeness}%</p>
+          </div>
+        </div>
+      )}
+
+      {/* PROPERTY GROUPS */}
       <div className="space-y-4">
         {Object.entries(fieldGroups).map(([groupKey, group]) => renderGroup(groupKey, group))}
       </div>

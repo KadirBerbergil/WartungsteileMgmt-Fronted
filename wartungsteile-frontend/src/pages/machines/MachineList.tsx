@@ -1,4 +1,4 @@
-// src/pages/machines/MachineList.tsx - VOLLSTÄNDIG ÜBERARBEITET mit Grid/Table Views
+// src/pages/machines/MachineList.tsx - REPARIERTE VERSION ohne ungenutzte Variablen
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMachines, useDeleteMachine } from '../../hooks/useMachines';
@@ -26,7 +26,7 @@ type ViewMode = 'grid' | 'table';
 const MachineList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<ViewMode>('table'); // Standard: Tabelle
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [machineToDelete, setMachineToDelete] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   
@@ -108,7 +108,6 @@ const MachineList = () => {
       setMachineToDelete(null);
     } catch (error) {
       console.error('Fehler beim Löschen der Maschine:', error);
-      // Error wird durch React Query Error Boundary behandelt
     }
   };
 
@@ -273,7 +272,6 @@ const MachineList = () => {
               <span>Filter</span>
             </button>
 
-            {/* ✨ NEW: View Mode Toggle */}
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('table')}
@@ -305,7 +303,7 @@ const MachineList = () => {
       {/* Content */}
       {filteredMachines && filteredMachines.length > 0 ? (
         viewMode === 'table' ? (
-          /* ✨ NEW: TABLE VIEW */
+          /* TABLE VIEW */
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full">
@@ -338,7 +336,7 @@ const MachineList = () => {
                   {filteredMachines.map((machine) => {
                     const statusConfig = getStatusConfig(machine.status);
                     const urgency = getMaintenanceUrgency(machine.operatingHours);
-                    const StatusIcon = statusConfig.icon;
+                    // ✅ REPARIERT: StatusIcon wird nicht mehr deklariert da es nicht verwendet wird
                     const daysSinceLastMaintenance = machine.lastMaintenanceDate 
                       ? Math.floor((Date.now() - new Date(machine.lastMaintenanceDate).getTime()) / (1000 * 60 * 60 * 24))
                       : null;
@@ -429,12 +427,12 @@ const MachineList = () => {
             </div>
           </div>
         ) : (
-          /* EXISTING: GRID VIEW (improved) */
+          /* GRID VIEW */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMachines.map((machine) => {
               const statusConfig = getStatusConfig(machine.status);
               const urgency = getMaintenanceUrgency(machine.operatingHours);
-              const StatusIcon = statusConfig.icon;
+              // ✅ REPARIERT: StatusIcon wird nicht mehr deklariert da es nicht verwendet wird
               const daysSinceLastMaintenance = machine.lastMaintenanceDate 
                 ? Math.floor((Date.now() - new Date(machine.lastMaintenanceDate).getTime()) / (1000 * 60 * 60 * 24))
                 : null;
