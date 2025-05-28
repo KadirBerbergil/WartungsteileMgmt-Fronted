@@ -1,4 +1,4 @@
-// src/pages/machines/MachineCreate.tsx
+// src/pages/machines/MachineCreate.tsx - KORRIGIERTE VERSION
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -74,8 +74,9 @@ const MachineCreate = () => {
     setSaveError(null);
 
     try {
+      // ✅ FIX: Korrektes API-Format laut Dokumentation
       const createData = {
-        number: formData.number.trim(),
+        machineNumber: formData.number.trim(),  // machineNumber statt number
         type: formData.type.trim(),
         operatingHours: formData.operatingHours,
         installationDate: formData.installationDate,
@@ -91,10 +92,14 @@ const MachineCreate = () => {
       });
       
     } catch (error: any) {
+      console.error('Create machine error:', error.response?.data || error);
+      
       const status = error.response?.status;
       if (status === 400) {
-        if (error.response.data?.errors) {
+        if (error.response.data?.errors && Array.isArray(error.response.data.errors)) {
           setValidationErrors(error.response.data.errors);
+        } else if (error.response.data?.message) {
+          setSaveError(error.response.data.message);
         } else {
           setSaveError('Ungültige Eingabedaten. Bitte prüfen Sie Ihre Eingaben.');
         }

@@ -1,9 +1,10 @@
-// src/App.tsx - Korrigiertes und bereinigtes Routing
+// src/App.tsx - Korrigiertes und bereinigtes Routing mit MachineEdit
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/dashboard/Dashboard'
 import MachineList from './pages/machines/MachineList'
-import MachineCreate from './pages/machines/MachineCreate'  // ✅ HINZUGEFÜGT
+import MachineCreate from './pages/machines/MachineCreate'
+import MachineEdit from './pages/machines/MachineEdit'  // ✅ HINZUGEFÜGT
 import MachineDetail from './pages/machines/MachineDetail'
 import MachineMaintenancePartsList from './pages/machines/MachineMaintenancePartsList'
 import MachineMaintenanceWorkflow from './pages/machines/MachineMaintenanceWorkflow'
@@ -23,9 +24,10 @@ function App() {
         {/* Maschinen-Routen */}
         <Route path="machines">
           <Route index element={<MachineList />} />
-          <Route path="create" element={<MachineCreate />} />  {/* ✅ HINZUGEFÜGT - WICHTIG: VOR :id Route! */}
+          <Route path="create" element={<MachineCreate />} />
           <Route path="upload" element={<PdfUploadExtractor />} />
           <Route path=":id" element={<MachineDetail />} />
+          <Route path=":id/edit" element={<MachineEdit />} />  {/* ✅ HINZUGEFÜGT - MachineEdit Route */}
           <Route path=":id/parts" element={<MachineMaintenancePartsList />} />
           <Route path=":id/maintenance" element={<MachineMaintenanceWorkflow />} />
         </Route>

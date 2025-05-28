@@ -1,15 +1,60 @@
-// src/services/machineService.ts - Null-Safety Fixes für TypeScript
+// src/services/machineService.ts - Status Update Integration
 import { api } from './api';
 import type { 
   Machine, 
   MachineDetail, 
   UpdateMagazinePropertiesCommand, 
-  ExtractedMachineData 
+  ExtractedMachineData
+  // ✅ MachineStatus aus Import entfernt - wird als string verwendet
 } from '../types/api';
+
+// ✅ MachineStatus Type Definition hier
+export type MachineStatus = 'Active' | 'InMaintenance' | 'OutOfService';
+
+// ✅ STATUS ENUM MAPPING - Integer Values
+export const MachineStatusMap = {
+  // String to Integer (für API Requests)
+  toInteger: {
+    'Active': 0,
+    'InMaintenance': 1,
+    'OutOfService': 2
+  } as const,
+  
+  // Integer to String (für UI Display)
+  toString: {
+    0: 'Active',
+    1: 'InMaintenance', 
+    2: 'OutOfService'
+  } as const,
+  
+  // German Display Names
+  toGerman: {
+    'Active': 'Aktiv',
+    'InMaintenance': 'In Wartung',
+    'OutOfService': 'Außer Betrieb'
+  } as const,
+  
+  // German to English
+  fromGerman: {
+    'Aktiv': 'Active',
+    'In Wartung': 'InMaintenance',
+    'Außer Betrieb': 'OutOfService'
+  } as const
+};
+
+export interface ChangeStatusRequest {
+  machineId: string;
+  newStatus: number; // ✅ Integer für API
+}
+
+export interface ChangeStatusResponse {
+  success: boolean;
+  message?: string;
+}
 
 export const machineService = {
   // ========================================
-  // BASIS MASCHINEN-OPERATIONS (unverändert)
+  // BASIS MASCHINEN-OPERATIONS
   // ========================================
   
   // Alle Maschinen abrufen
@@ -51,6 +96,71 @@ export const machineService = {
     return response.status === 200;
   },
   
+  // ✅ FIXED: Status Update mit korrekter Integer-Konvertierung
+  updateMachineStatus: async (
+    machineId: string, 
+    newStatus: MachineStatus | string
+  ): Promise<ChangeStatusResponse> => {
+    try {
+      // Status zu Integer konvertieren
+      let statusInteger: number;
+      
+      if (typeof newStatus === 'string') {
+        // Falls deutscher Status übergeben wird
+        const englishStatus = MachineStatusMap.fromGerman[newStatus as keyof typeof MachineStatusMap.fromGerman];
+        if (englishStatus) {
+          statusInteger = MachineStatusMap.toInteger[englishStatus];
+        } else {
+          // Falls englischer Status übergeben wird
+          statusInteger = MachineStatusMap.toInteger[newStatus as keyof typeof MachineStatusMap.toInteger];
+        }
+      } else {
+        // Falls bereits Integer
+        statusInteger = newStatus as number;
+      }
+
+      // Validierung
+      if (statusInteger === undefined || ![0, 1, 2].includes(statusInteger)) {
+        throw new Error(`Ungültiger Status: ${newStatus}`);
+      }
+
+      console.log('🔄 Status Update Request:', {
+        machineId,
+        originalStatus: newStatus,
+        convertedStatus: statusInteger,
+        statusName: MachineStatusMap.toString[statusInteger as keyof typeof MachineStatusMap.toString]
+      });
+
+      const requestData: ChangeStatusRequest = {
+        machineId: machineId,
+        newStatus: statusInteger
+      };
+
+      const response = await api.patch(`/Machines/${machineId}/status`, requestData);
+      
+      console.log('✅ Status Update Success:', response.data);
+      
+      return {
+        success: true,
+        message: 'Status erfolgreich aktualisiert'
+      };
+      
+    } catch (error: any) {
+      console.error('❌ Status Update Error:', {
+        machineId,
+        newStatus,
+        error: error.response?.data || error.message
+      });
+      
+      throw new Error(
+        error.response?.data?.message || 
+        error.response?.data || 
+        error.message || 
+        'Fehler beim Aktualisieren des Status'
+      );
+    }
+  },
+  
   // Maschine löschen
   delete: async (id: string): Promise<boolean> => {
     const response = await api.delete(`/Machines/${id}`);
@@ -62,6 +172,7 @@ export const machineService = {
     const response = await api.post(`/Machines/${id}/maintenance`, data);
     return response.data;
   },
+
 
   // ========================================
   // ✨ ERWEITERTE MAGAZIN-EIGENSCHAFTEN APIs
@@ -156,9 +267,8 @@ export const machineService = {
     } catch (error: any) {
       // Fallback: Wenn Endpoint nicht existiert, aus Machine-Daten berechnen
       console.warn('⚠️ Completeness-Endpoint nicht verfügbar, berechne client-seitig');
-      const self = machineService;
-      const machine = await self.getById(machineId);
-      return self.calculateCompletenessClientSide(machine);
+      const machine = await machineService.getById(machineId);
+      return machineService.calculateCompletenessClientSide(machine);
     }
   },
 
@@ -281,7 +391,7 @@ export const machineService = {
   },
 
   // ========================================
-  // VALIDIERUNG UND HELPER
+  // VALIDIERUNG UND HELPER + STATUS HELPERS
   // ========================================
 
   /**
@@ -322,6 +432,33 @@ export const machineService = {
       errors,
       warnings
     };
+  },
+
+  // Status Helper Functions
+  getStatusDisplayName: (status: MachineStatus | string | number): string => {
+    if (typeof status === 'number') {
+      const englishStatus = MachineStatusMap.toString[status as keyof typeof MachineStatusMap.toString];
+      return MachineStatusMap.toGerman[englishStatus] || 'Unbekannt';
+    }
+    
+    if (typeof status === 'string') {
+      return MachineStatusMap.toGerman[status as keyof typeof MachineStatusMap.toGerman] || status;
+    }
+    
+    return 'Unbekannt';
+  },
+
+  getStatusInteger: (status: string): number => {
+    const englishStatus = MachineStatusMap.fromGerman[status as keyof typeof MachineStatusMap.fromGerman] || status;
+    return MachineStatusMap.toInteger[englishStatus as keyof typeof MachineStatusMap.toInteger] ?? 0;
+  },
+
+  getAvailableStatuses: (): Array<{ value: string; label: string; integer: number }> => {
+    return [
+      { value: 'Active', label: 'Aktiv', integer: 0 },
+      { value: 'InMaintenance', label: 'In Wartung', integer: 1 },
+      { value: 'OutOfService', label: 'Außer Betrieb', integer: 2 }
+    ];
   },
 
   /**
@@ -385,3 +522,5 @@ export const machineService = {
     };
   }
 };
+
+export default machineService;
