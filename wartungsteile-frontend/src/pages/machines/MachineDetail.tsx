@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useMachineDetail } from '../../hooks/useMachines';
 import { useQueryClient } from '@tanstack/react-query';
 import MagazinePropertiesEditor from '../../components/MagazinePropertiesEditor';
-import MagazinePdfUpload from '../../components/MagazinePdfUpload';
+import { PdfImportModal } from '../../components/pdf-import/PdfImportModal';
 import type { MachineDetail as MachineDetailType } from '../../types/api';
 import { 
   ExclamationTriangleIcon,
@@ -14,18 +14,17 @@ import {
   WrenchScrewdriverIcon,
   CalendarDaysIcon,
   PencilIcon,
-  DocumentArrowUpIcon,
   ChartBarIcon,
   PlayIcon,
   ListBulletIcon,
-  SparklesIcon
+  DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
 
 const MachineDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: machine, isLoading, error } = useMachineDetail(id || '');
-  const [showPdfUpload, setShowPdfUpload] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'properties' | 'maintenance'>('overview');
+  const [showPdfImport, setShowPdfImport] = useState(false);
   
   // ✅ NEU: Local state für aktualisierte Machine-Daten
   const [localMachine, setLocalMachine] = useState<MachineDetailType | null>(null);
@@ -50,6 +49,13 @@ const MachineDetail = () => {
     queryClient.setQueryData(['machine', id], updatedMachine);
     
     console.log('✅ MachineDetail: Local state und cache aktualisiert');
+  };
+
+  // Handler für PDF Import Complete
+  const handlePdfImportComplete = () => {
+    // Refetch machine data nach PDF import
+    queryClient.invalidateQueries({ queryKey: ['machine', id] });
+    setShowPdfImport(false);
   };
 
   // ✅ Verwende localMachine falls verfügbar, sonst fallback auf machine
@@ -162,14 +168,6 @@ const MachineDetail = () => {
         </div>
         
         <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setShowPdfUpload(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <DocumentArrowUpIcon className="h-4 w-4" />
-            <span>PDF Import</span>
-          </button>
-          
           <Link 
             to={`/machines/${id}/edit`}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
@@ -277,7 +275,7 @@ const MachineDetail = () => {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* Quick Actions */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link
                   to={`/machines/${id}/parts`}
                   className="flex items-center space-x-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
@@ -304,18 +302,6 @@ const MachineDetail = () => {
                   </div>
                 </Link>
 
-                <button
-                  onClick={() => setShowPdfUpload(true)}
-                  className="flex items-center space-x-4 p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
-                >
-                  <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                    <SparklesIcon className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-purple-900">KI-Import</h3>
-                    <p className="text-purple-700 text-sm">PDF analysieren</p>
-                  </div>
-                </button>
               </div>
 
               {/* Basic Machine Info */}
@@ -359,10 +345,21 @@ const MachineDetail = () => {
 
           {/* ✅ REPARIERT: Properties Tab mit onUpdate Handler */}
           {activeTab === 'properties' && (
-            <MagazinePropertiesEditor 
-              machine={currentMachine} 
-              onUpdate={handleMagazinePropertiesUpdate}
-            />
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowPdfImport(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <DocumentArrowUpIcon className="h-5 w-5" />
+                  <span>PDF Werkstattauftrag importieren</span>
+                </button>
+              </div>
+              <MagazinePropertiesEditor 
+                machine={currentMachine} 
+                onUpdate={handleMagazinePropertiesUpdate}
+              />
+            </div>
           )}
 
           {/* Maintenance Tab */}
@@ -437,16 +434,13 @@ const MachineDetail = () => {
         </div>
       </div>
 
-      {/* PDF Upload Modal */}
-      {showPdfUpload && (
-        <MagazinePdfUpload
-          machine={currentMachine}
-          onSuccess={() => {
-            setShowPdfUpload(false);
-          }}
-          onClose={() => setShowPdfUpload(false)}
-        />
-      )}
+      {/* PDF Import Modal */}
+      <PdfImportModal
+        isOpen={showPdfImport}
+        onClose={() => setShowPdfImport(false)}
+        onImportComplete={handlePdfImportComplete}
+      />
+
     </div>
   );
 };

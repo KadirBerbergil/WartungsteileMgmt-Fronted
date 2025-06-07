@@ -384,3 +384,6 @@ export const createApiRequest = {
     return api.delete<T>(`${baseUrl}/${validId}`);
   }
 };
+
+// Default export für einfachere Importe
+export default api;

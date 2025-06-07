@@ -7,8 +7,8 @@ import {
   ClipboardDocumentListIcon,
   Squares2X2Icon,
   PlusIcon,
-  DocumentArrowUpIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import { useMachines } from '../../hooks/useMachines';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -48,6 +48,12 @@ const Sidebar = () => {
       label: "Berichte",
       icon: ClipboardDocumentListIcon,
       badge: "0" // ✅ Placeholder - später durch echte Berichte-API ersetzen
+    },
+    {
+      to: "/model-training",
+      label: "Model Training",
+      icon: AcademicCapIcon,
+      badge: null
     }
   ];
 
@@ -57,12 +63,6 @@ const Sidebar = () => {
       label: "Neue Maschine",
       icon: PlusIcon,
       color: "text-blue-500"
-    },
-    {
-      to: "/machines/upload", 
-      label: "PDF Import",
-      icon: DocumentArrowUpIcon,
-      color: "text-emerald-500"
     }
   ];
 

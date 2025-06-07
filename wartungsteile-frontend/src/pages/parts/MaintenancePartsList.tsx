@@ -10,11 +10,10 @@ import {
   TrashIcon,
   CubeIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
   XCircleIcon,
   FunnelIcon,
   ShoppingCartIcon,
-  ExclamationCircleIcon
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 const MaintenancePartsList = () => {

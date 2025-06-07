@@ -182,7 +182,7 @@ const MachineCreate = () => {
           <div>
             <h3 className="font-semibold text-blue-900 mb-1">Schnelle Erfassung</h3>
             <p className="text-blue-800 text-sm">
-              Erfassen Sie die Grunddaten. Erweiterte Magazin-Eigenschaften können später über PDF-Import oder manuell hinzugefügt werden.
+              Erfassen Sie die Grunddaten. Erweiterte Magazin-Eigenschaften können später manuell hinzugefügt werden.
             </p>
           </div>
         </div>

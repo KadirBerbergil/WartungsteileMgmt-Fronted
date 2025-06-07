@@ -114,48 +114,6 @@ export interface UpdateMagazinePropertiesCommand {
   magazinePropertiesNotes?: string;
 }
 
-// PDF-Extraktion (für POST /api/Machines/{id}/magazine/from-pdf)
-export interface ExtractedMachineData {
-  // Basis-Daten
-  machineNumber?: string;
-  magazineType?: string;
-  materialBarLength?: number;
-  hasSynchronizationDevice?: boolean;
-  feedChannel?: string;
-  feedRod?: string;
-  
-  // Alle erweiterten Eigenschaften
-  customerName?: string;
-  customerNumber?: string;
-  customerProcess?: string;
-  productionWeek?: string;
-  baseColor?: string;
-  coverColor?: string;
-  switchCabinetColor?: string;
-  controlPanelColor?: string;
-  documentationLanguage?: string;
-  documentationCount?: string;
-  buildVariant?: string;
-  operatingVoltage?: string;
-  latheManufacturer?: string;
-  latheType?: string;
-  latheNumber?: string;
-  spindleHeight?: string;
-  spindleDiameter?: string;
-  magazineNumber?: string;
-  positionNumber?: string;
-  controlPanel?: string;
-  apm?: string;
-  eprom?: string;
-  circuitDiagram?: string;
-  drawingList?: string;
-  articleNumber?: string;
-  
-  // Metadaten
-  extractionConfidence?: number;
-  extractionSource?: string;
-  extractedAt?: string;
-}
 
 // Magazin-Eigenschaften Gruppierung für bessere UI-Organisation
 export interface MagazinePropertiesGroups {
