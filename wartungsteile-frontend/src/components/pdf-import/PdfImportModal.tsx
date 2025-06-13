@@ -20,10 +20,16 @@ interface PdfImportModalProps {
 interface PdfFile {
   file: File;
   id: string;
+<<<<<<< HEAD
   status: 'pending' | 'uploading' | 'processing' | 'success' | 'error';
   result?: any;
   error?: string;
   progress?: number;
+=======
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  result?: any;
+  error?: string;
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
 }
 
 export const PdfImportModal: React.FC<PdfImportModalProps> = ({
@@ -39,6 +45,7 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
   const [autoCreate, setAutoCreate] = useState(true);
   const [overwriteExisting, setOverwriteExisting] = useState(false);
   const [importResults, setImportResults] = useState<any>(null);
+<<<<<<< HEAD
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const validateFile = (file: File): { valid: boolean; error?: string } => {
@@ -96,22 +103,38 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
       setFiles(prev => [...prev, ...validFiles]);
     }
   }, [files]);
+=======
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const newFiles = acceptedFiles.map(file => ({
+      file,
+      id: Math.random().toString(36).substr(2, 9),
+      status: 'pending' as const
+    }));
+    setFiles(prev => [...prev, ...newFiles]);
+  }, []);
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'application/pdf': ['.pdf']
     },
+<<<<<<< HEAD
     multiple: true,
     maxSize: 50 * 1024 * 1024, // 50MB per file
     noClick: isImporting || isPreviewing, // Disable click during operations
     noKeyboard: isImporting || isPreviewing
+=======
+    multiple: true
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
   });
 
   const removeFile = (id: string) => {
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 
+<<<<<<< HEAD
   const handlePreview = async (pdfFile: PdfFile) => {
     setIsPreviewing(true);
     setSelectedFileForPreview(pdfFile.id);
@@ -160,6 +183,12 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
     }, 500);
 
     const formData = new FormData();
+=======
+  const handleImport = async () => {
+    setIsImporting(true);
+    const formData = new FormData();
+    
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
     files.forEach(pdfFile => {
       formData.append('files', pdfFile.file);
     });
@@ -173,8 +202,11 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
         }
       );
 
+<<<<<<< HEAD
       clearInterval(progressInterval);
 
+=======
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
       if (!response.ok) {
         throw new Error('Import fehlgeschlagen');
       }
@@ -192,8 +224,12 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
           return {
             ...file,
             status: fileResult.success ? 'success' : 'error',
+<<<<<<< HEAD
             result: fileResult,
             progress: 100
+=======
+            result: fileResult
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
           };
         }
         return file;
@@ -205,13 +241,20 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
         }, 2000);
       }
     } catch (error) {
+<<<<<<< HEAD
       clearInterval(progressInterval);
+=======
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
       console.error('Import error:', error);
       setFiles(prev => prev.map(file => ({
         ...file,
         status: 'error',
+<<<<<<< HEAD
         error: 'Import fehlgeschlagen',
         progress: 0
+=======
+        error: 'Import fehlgeschlagen'
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
       })));
     } finally {
       setIsImporting(false);
@@ -221,8 +264,11 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
   const reset = () => {
     setFiles([]);
     setImportResults(null);
+<<<<<<< HEAD
     setPreviewData(null);
     setShowPreviewModal(false);
+=======
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
   };
 
   return (
@@ -241,17 +287,27 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
           </div>
 
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+<<<<<<< HEAD
             {/* Dropzone - Always visible if no import results */}
             {!importResults && (
+=======
+            {/* Dropzone */}
+            {files.length === 0 && (
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
               <div
                 {...getRootProps()}
                 className={`
                   border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+<<<<<<< HEAD
                   transition-colors duration-200 mb-4
+=======
+                  transition-colors duration-200
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
                   ${isDragActive 
                     ? 'border-blue-500 bg-blue-50' 
                     : 'border-gray-300 hover:border-gray-400'
                   }
+<<<<<<< HEAD
                   ${files.length > 0 ? 'p-4' : 'p-8'}
                 `}
               >
@@ -280,6 +336,21 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
                     </p>
                   </div>
                 )}
+=======
+                `}
+              >
+                <input {...getInputProps()} />
+                <CloudArrowUpIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-lg font-medium">
+                  {isDragActive
+                    ? 'Dateien hier ablegen...'
+                    : 'PDF-Dateien hier ablegen oder klicken zum Auswählen'
+                  }
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Mehrere Dateien gleichzeitig möglich
+                </p>
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
               </div>
             )}
 
@@ -287,6 +358,7 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
             {files.length > 0 && (
               <div className="space-y-3">
                 <div className="flex justify-between items-center mb-4">
+<<<<<<< HEAD
                   <div>
                     <h3 className="font-medium">
                       {files.length} Datei{files.length !== 1 ? 'en' : ''} ausgewählt
@@ -295,6 +367,11 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
                       Gesamtgröße: {(files.reduce((sum, f) => sum + f.file.size, 0) / 1024 / 1024).toFixed(2)} MB von max. 100 MB
                     </p>
                   </div>
+=======
+                  <h3 className="font-medium">
+                    {files.length} Datei{files.length !== 1 ? 'en' : ''} ausgewählt
+                  </h3>
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
                   {!isImporting && !importResults && (
                     <Button size="sm" variant="ghost" onClick={reset}>
                       Zurücksetzen
@@ -309,11 +386,16 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
                   >
                     <div className="flex items-center space-x-3">
                       <DocumentIcon className="w-8 h-8 text-red-600" />
+<<<<<<< HEAD
                       <div className="flex-1">
+=======
+                      <div>
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
                         <p className="font-medium text-sm">{pdfFile.file.name}</p>
                         <p className="text-xs text-gray-500">
                           {(pdfFile.file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
+<<<<<<< HEAD
                         
                         {/* Progress Bar */}
                         {pdfFile.status === 'processing' && pdfFile.progress !== undefined && (
@@ -331,11 +413,17 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
                           </div>
                         )}
                         
+=======
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
                         {pdfFile.result && (
                           <div className="mt-1">
                             {pdfFile.result.machineNumber && (
                               <p className="text-xs text-green-600">
+<<<<<<< HEAD
                                 ✓ Maschine: {pdfFile.result.machineNumber}
+=======
+                                Maschine: {pdfFile.result.machineNumber}
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
                               </p>
                             )}
                             {pdfFile.result.warnings?.map((warning: string, idx: number) => (
@@ -355,6 +443,7 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
 
                     <div className="flex items-center space-x-2">
                       {pdfFile.status === 'pending' && !isImporting && (
+<<<<<<< HEAD
                         <>
                           <button
                             onClick={() => handlePreview(pdfFile)}
@@ -377,13 +466,24 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
                             <XMarkIcon className="w-5 h-5" />
                           </button>
                         </>
+=======
+                        <button
+                          onClick={() => removeFile(pdfFile.id)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <XMarkIcon className="w-5 h-5" />
+                        </button>
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
                       )}
                       {pdfFile.status === 'uploading' && (
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
                       )}
+<<<<<<< HEAD
                       {pdfFile.status === 'processing' && (
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
                       )}
+=======
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
                       {pdfFile.status === 'success' && (
                         <CheckCircleIcon className="w-5 h-5 text-green-600" />
                       )}
@@ -467,6 +567,7 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
           </div>
         </Dialog.Panel>
       </div>
+<<<<<<< HEAD
 
       {/* Preview Modal */}
       {showPreviewModal && previewData && (
@@ -587,6 +688,8 @@ export const PdfImportModal: React.FC<PdfImportModalProps> = ({
           </div>
         </Dialog>
       )}
+=======
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
     </Dialog>
   );
 };

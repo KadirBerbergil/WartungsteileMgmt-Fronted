@@ -21,7 +21,10 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+<<<<<<< HEAD
     "lucide-react": "^0.513.0",
+=======
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.3.8",

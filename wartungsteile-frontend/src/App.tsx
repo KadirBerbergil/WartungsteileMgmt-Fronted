@@ -1,10 +1,15 @@
 // src/App.tsx - Optimized with Code Splitting
 import { lazy, Suspense } from 'react'
+<<<<<<< HEAD
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import AuthGuard from './components/auth/AuthGuard'
 import SessionManager from './components/auth/SessionManager'
 import { userService } from './services/userService'
+=======
+import { Routes, Route } from 'react-router-dom'
+import Layout from './components/layout/Layout'
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
 
 // Lazy load all route components
 const Dashboard = lazy(() => import('./pages/dashboard/EnhancedDashboard'))
@@ -18,10 +23,14 @@ const MaintenancePartsList = lazy(() => import('./pages/parts/MaintenancePartsLi
 const MaintenancePartDetail = lazy(() => import('./pages/parts/MaintenancePartDetail'))
 const MaintenancePartEdit = lazy(() => import('./pages/parts/MaintenancePartEdit'))
 const MaintenancePartCreate = lazy(() => import('./pages/parts/MaintenancePartCreate'))
+<<<<<<< HEAD
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const Login = lazy(() => import('./pages/auth/Login'))
 const Profile = lazy(() => import('./pages/profile/Profile'))
 const Settings = lazy(() => import('./pages/settings/Settings'))
+=======
+const ModelTraining = lazy(() => import('./pages/model-training/ModelTraining'))
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
 
 // Loading component
 const PageLoader = () => (
@@ -113,6 +122,7 @@ function App() {
           } />
         </Route>
         
+<<<<<<< HEAD
         
         {/* Admin Dashboard Route - nur für Admins */}
         <Route path="admin" element={
@@ -134,6 +144,12 @@ function App() {
         <Route path="settings" element={
           <Suspense fallback={<PageLoader />}>
             <Settings />
+=======
+        {/* Model Training Route */}
+        <Route path="model-training" element={
+          <Suspense fallback={<PageLoader />}>
+            <ModelTraining />
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
           </Suspense>
         } />
         

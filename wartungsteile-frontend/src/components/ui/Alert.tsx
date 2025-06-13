@@ -1,6 +1,7 @@
 import { HTMLAttributes, forwardRef } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
+<<<<<<< HEAD
 // Icons als SVG-Komponenten
 const CheckCircleIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -25,6 +26,14 @@ const XCircleIcon = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 )
+=======
+import { 
+  CheckCircleIcon, 
+  ExclamationTriangleIcon, 
+  InformationCircleIcon,
+  XCircleIcon 
+} from '@heroicons/react/24/outline'
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
 
 const alertVariants = cva(
   'relative w-full rounded-lg border p-4 [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg+div]:pl-8',

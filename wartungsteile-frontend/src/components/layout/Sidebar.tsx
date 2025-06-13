@@ -7,7 +7,11 @@ import {
   Squares2X2Icon,
   PlusIcon,
   ChevronRightIcon,
+<<<<<<< HEAD
   ShieldCheckIcon
+=======
+  AcademicCapIcon
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
 } from '@heroicons/react/24/outline';
 import { useMachines } from '../../hooks/useMachines';
 import { useMaintenanceParts } from '../../hooks/useParts';
@@ -44,10 +48,23 @@ const Sidebar = () => {
       badge: parts ? parts.length.toString() : "0" // ✅ Echte Anzahl
     },
     {
+<<<<<<< HEAD
       to: "/admin",
       label: "Admin Dashboard",
       icon: ShieldCheckIcon,
       badge: "NEU"
+=======
+      to: "/reports",
+      label: "Berichte",
+      icon: ClipboardDocumentListIcon,
+      badge: "0" // ✅ Placeholder - später durch echte Berichte-API ersetzen
+    },
+    {
+      to: "/model-training",
+      label: "Model Training",
+      icon: AcademicCapIcon,
+      badge: null
+>>>>>>> 7c5145f396b0f14ebda3d4a196bd00a9d7ca030d
     }
   ];
 
