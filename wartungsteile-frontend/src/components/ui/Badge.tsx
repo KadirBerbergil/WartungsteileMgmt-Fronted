@@ -11,6 +11,7 @@ const badgeVariants = cva(
         success: 'bg-green-100 text-green-800 focus:ring-green-500',
         warning: 'bg-yellow-100 text-yellow-800 focus:ring-yellow-500',
         danger: 'bg-red-100 text-red-800 focus:ring-red-500',
+        destructive: 'bg-red-100 text-red-800 focus:ring-red-500',
         secondary: 'bg-gray-100 text-gray-800 focus:ring-gray-500',
         outline: 'border border-gray-300 bg-transparent text-gray-700'
       }
