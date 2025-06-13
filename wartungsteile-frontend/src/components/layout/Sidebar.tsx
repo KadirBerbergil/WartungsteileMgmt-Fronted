@@ -4,14 +4,14 @@ import { NavLink } from 'react-router-dom';
 import { 
   CogIcon, 
   WrenchScrewdriverIcon,
-  ClipboardDocumentListIcon,
   Squares2X2Icon,
   PlusIcon,
-  DocumentArrowUpIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { useMachines } from '../../hooks/useMachines';
 import { useMaintenanceParts } from '../../hooks/useParts';
+import packageJson from '../../../package.json';
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -44,10 +44,10 @@ const Sidebar = () => {
       badge: parts ? parts.length.toString() : "0" // ✅ Echte Anzahl
     },
     {
-      to: "/reports",
-      label: "Berichte",
-      icon: ClipboardDocumentListIcon,
-      badge: "0" // ✅ Placeholder - später durch echte Berichte-API ersetzen
+      to: "/admin",
+      label: "Admin Dashboard",
+      icon: ShieldCheckIcon,
+      badge: "NEU"
     }
   ];
 
@@ -57,12 +57,6 @@ const Sidebar = () => {
       label: "Neue Maschine",
       icon: PlusIcon,
       color: "text-blue-500"
-    },
-    {
-      to: "/machines/upload", 
-      label: "PDF Import",
-      icon: DocumentArrowUpIcon,
-      color: "text-emerald-500"
     }
   ];
 
@@ -219,7 +213,7 @@ const Sidebar = () => {
           <div className={`transition-all duration-300 ${
             shouldShowLabels ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'
           }`}>
-            <span className="text-xs text-gray-500 whitespace-nowrap">v2.4.1</span>
+            <span className="text-xs text-gray-500 whitespace-nowrap">v{packageJson.version}</span>
           </div>
         </div>
       </div>

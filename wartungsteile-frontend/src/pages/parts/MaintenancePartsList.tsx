@@ -1,6 +1,7 @@
 // src/pages/parts/MaintenancePartsList.tsx - VOLLSTÄNDIG ÜBERARBEITET mit Löschen-Funktionalität
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMaintenanceParts, useDeleteMaintenancePart } from '../../hooks/useParts';
 import { 
   MagnifyingGlassIcon, 
@@ -10,22 +11,38 @@ import {
   TrashIcon,
   CubeIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
   XCircleIcon,
   FunnelIcon,
   ShoppingCartIcon,
-  ExclamationCircleIcon
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 const MaintenancePartsList = () => {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [stockFilter, setStockFilter] = useState<string>('all');
   const [partToDelete, setPartToDelete] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   
-  const { data: parts, isLoading, error } = useMaintenanceParts();
+  const { data: parts, isLoading, error, refetch } = useMaintenanceParts();
   const deletePart = useDeleteMaintenancePart();
+  
+  // Event Listener für wiederhergestellte Teile
+  useEffect(() => {
+    const handlePartsRestored = (event: CustomEvent) => {
+      console.log('Teil wiederhergestellt, aktualisiere Liste...');
+      // Invalidiere den Cache und lade neu
+      queryClient.invalidateQueries({ queryKey: ['maintenanceParts'] });
+      refetch();
+    };
+    
+    window.addEventListener('parts-restored', handlePartsRestored as EventListener);
+    
+    return () => {
+      window.removeEventListener('parts-restored', handlePartsRestored as EventListener);
+    };
+  }, [queryClient, refetch]);
 
   const filteredParts = parts?.filter(part => {
     const matchesSearch = part.partNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||

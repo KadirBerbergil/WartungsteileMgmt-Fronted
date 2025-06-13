@@ -1,44 +1,141 @@
-// src/App.tsx - Korrigiertes und bereinigtes Routing mit MachineEdit
-import { Routes, Route } from 'react-router-dom'
+// src/App.tsx - Optimized with Code Splitting
+import { lazy, Suspense } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
-import Dashboard from './pages/dashboard/Dashboard'
-import MachineList from './pages/machines/MachineList'
-import MachineCreate from './pages/machines/MachineCreate'
-import MachineEdit from './pages/machines/MachineEdit'  // ✅ HINZUGEFÜGT
-import MachineDetail from './pages/machines/MachineDetail'
-import MachineMaintenancePartsList from './pages/machines/MachineMaintenancePartsList'
-import MachineMaintenanceWorkflow from './pages/machines/MachineMaintenanceWorkflow'
-import PdfUploadExtractor from './pages/machines/PdfUploadExtractor'
-import MaintenancePartsList from './pages/parts/MaintenancePartsList'
-import MaintenancePartDetail from './pages/parts/MaintenancePartDetail'
-import MaintenancePartEdit from './pages/parts/MaintenancePartEdit'
-import MaintenancePartCreate from './pages/parts/MaintenancePartCreate'
+import AuthGuard from './components/auth/AuthGuard'
+import SessionManager from './components/auth/SessionManager'
+import { userService } from './services/userService'
+
+// Lazy load all route components
+const Dashboard = lazy(() => import('./pages/dashboard/EnhancedDashboard'))
+const MachineList = lazy(() => import('./pages/machines/MachineList'))
+const MachineCreate = lazy(() => import('./pages/machines/MachineCreate'))
+const MachineEdit = lazy(() => import('./pages/machines/MachineEdit'))
+const MachineDetail = lazy(() => import('./pages/machines/MachineDetail'))
+const MachineMaintenancePartsList = lazy(() => import('./pages/machines/MachineMaintenancePartsList'))
+const MachineMaintenanceWorkflow = lazy(() => import('./pages/machines/MachineMaintenanceWorkflow'))
+const MaintenancePartsList = lazy(() => import('./pages/parts/MaintenancePartsList'))
+const MaintenancePartDetail = lazy(() => import('./pages/parts/MaintenancePartDetail'))
+const MaintenancePartEdit = lazy(() => import('./pages/parts/MaintenancePartEdit'))
+const MaintenancePartCreate = lazy(() => import('./pages/parts/MaintenancePartCreate'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const Login = lazy(() => import('./pages/auth/Login'))
+const Profile = lazy(() => import('./pages/profile/Profile'))
+const Settings = lazy(() => import('./pages/settings/Settings'))
+
+// Loading component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+)
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      {/* Login Route */}
+      <Route path="/login" element={
+        <Suspense fallback={<PageLoader />}>
+          <Login />
+        </Suspense>
+      } />
+      
+      {/* Protected Routes */}
+      <Route path="/" element={
+        <AuthGuard>
+          <SessionManager>
+            <Layout />
+          </SessionManager>
+        </AuthGuard>
+      }>
         {/* Dashboard */}
-        <Route index element={<Dashboard />} />
+        <Route index element={
+          <Suspense fallback={<PageLoader />}>
+            <Dashboard />
+          </Suspense>
+        } />
         
         {/* Maschinen-Routen */}
         <Route path="machines">
-          <Route index element={<MachineList />} />
-          <Route path="create" element={<MachineCreate />} />
-          <Route path="upload" element={<PdfUploadExtractor />} />
-          <Route path=":id" element={<MachineDetail />} />
-          <Route path=":id/edit" element={<MachineEdit />} />  {/* ✅ HINZUGEFÜGT - MachineEdit Route */}
-          <Route path=":id/parts" element={<MachineMaintenancePartsList />} />
-          <Route path=":id/maintenance" element={<MachineMaintenanceWorkflow />} />
+          <Route index element={
+            <Suspense fallback={<PageLoader />}>
+              <MachineList />
+            </Suspense>
+          } />
+          <Route path="create" element={
+            <Suspense fallback={<PageLoader />}>
+              <MachineCreate />
+            </Suspense>
+          } />
+          <Route path=":id" element={
+            <Suspense fallback={<PageLoader />}>
+              <MachineDetail />
+            </Suspense>
+          } />
+          <Route path=":id/edit" element={
+            <Suspense fallback={<PageLoader />}>
+              <MachineEdit />
+            </Suspense>
+          } />
+          <Route path=":id/parts" element={
+            <Suspense fallback={<PageLoader />}>
+              <MachineMaintenancePartsList />
+            </Suspense>
+          } />
+          <Route path=":id/maintenance" element={
+            <Suspense fallback={<PageLoader />}>
+              <MachineMaintenanceWorkflow />
+            </Suspense>
+          } />
         </Route>
         
         {/* Wartungsteile-Routen */}
         <Route path="parts">
-          <Route index element={<MaintenancePartsList />} />
-          <Route path="new" element={<MaintenancePartCreate />} />
-          <Route path=":id" element={<MaintenancePartDetail />} />
-          <Route path=":id/edit" element={<MaintenancePartEdit />} />
+          <Route index element={
+            <Suspense fallback={<PageLoader />}>
+              <MaintenancePartsList />
+            </Suspense>
+          } />
+          <Route path="new" element={
+            <Suspense fallback={<PageLoader />}>
+              <MaintenancePartCreate />
+            </Suspense>
+          } />
+          <Route path=":id" element={
+            <Suspense fallback={<PageLoader />}>
+              <MaintenancePartDetail />
+            </Suspense>
+          } />
+          <Route path=":id/edit" element={
+            <Suspense fallback={<PageLoader />}>
+              <MaintenancePartEdit />
+            </Suspense>
+          } />
         </Route>
+        
+        
+        {/* Admin Dashboard Route - nur für Admins */}
+        <Route path="admin" element={
+          <AuthGuard requiredRole="Admin">
+            <Suspense fallback={<PageLoader />}>
+              <AdminDashboard />
+            </Suspense>
+          </AuthGuard>
+        } />
+
+        {/* Profil Route */}
+        <Route path="profile" element={
+          <Suspense fallback={<PageLoader />}>
+            <Profile />
+          </Suspense>
+        } />
+
+        {/* Einstellungen Route */}
+        <Route path="settings" element={
+          <Suspense fallback={<PageLoader />}>
+            <Settings />
+          </Suspense>
+        } />
         
         {/* Catch-all Route für 404 */}
         <Route path="*" element={

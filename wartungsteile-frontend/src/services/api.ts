@@ -15,6 +15,16 @@ export const api = axios.create({
 // Request Interceptor für Debug-Logging und Validierung
 api.interceptors.request.use(
   config => {
+    // ✅ Authorization Header hinzufügen
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // ✅ API Key hinzufügen
+    const apiKey = import.meta.env.VITE_API_KEY || 'dev-key-123456';
+    config.headers['X-API-Key'] = apiKey;
+    
     // ✅ FIX: Verbesserte URL-Validierung
     const url = config.url || '';
     
@@ -37,6 +47,10 @@ api.interceptors.request.use(
       baseURL: config.baseURL,
       fullURL: `${config.baseURL}${url}`,
       data: config.data ? 'Daten vorhanden' : 'Keine Daten',
+      headers: {
+        hasAuth: !!config.headers['Authorization'],
+        hasApiKey: !!config.headers['X-API-Key']
+      },
       timestamp: new Date().toISOString()
     });
     
@@ -61,7 +75,7 @@ api.interceptors.response.use(
     
     return response;
   },
-  error => {
+  async error => {
     const errorDetails = {
       message: error.message || 'Unbekannter Fehler',
       status: error.response?.status,
@@ -109,9 +123,43 @@ api.interceptors.response.use(
       error.category = 'VALIDATION';
     }
     else if (error.response?.status === 401) {
-      console.error('🔐 Unauthorized (401) - Keine Berechtigung');
-      error.userMessage = 'Keine Berechtigung für diese Aktion.';
-      error.category = 'AUTH';
+      console.error('🔐 Unauthorized (401) - Token möglicherweise abgelaufen');
+      
+      // Versuche Token zu erneuern
+      const originalRequest = error.config;
+      if (!originalRequest._retry && localStorage.getItem('refreshToken')) {
+        originalRequest._retry = true;
+        
+        try {
+          console.log('🔄 Versuche Token zu erneuern...');
+          const { userService } = await import('./userService');
+          await userService.refreshToken();
+          
+          // Wiederhole den ursprünglichen Request mit neuem Token
+          originalRequest.headers['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          console.error('❌ Token-Erneuerung fehlgeschlagen');
+          // Wenn Refresh fehlschlägt, zur Login-Seite
+          if (!window.location.pathname.includes('/login')) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+          }
+        }
+      } else {
+        error.userMessage = 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.';
+        error.category = 'AUTH';
+        
+        // Bei 401 zur Login-Seite navigieren (außer wir sind schon dort)
+        if (!window.location.pathname.includes('/login')) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
+      }
     }
     else if (error.response?.status === 403) {
       console.error('🚫 Forbidden (403) - Zugriff verweigert');
@@ -384,3 +432,6 @@ export const createApiRequest = {
     return api.delete<T>(`${baseUrl}/${validId}`);
   }
 };
+
+// Default export für einfachere Importe
+export default api;

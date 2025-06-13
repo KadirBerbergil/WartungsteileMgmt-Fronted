@@ -36,7 +36,6 @@ export interface Machine {
   
   // Dokumentation
   documentationLanguage?: string;
-  documentationCount?: string;
   
   // Technische Daten
   buildVariant?: string;
@@ -95,7 +94,6 @@ export interface UpdateMagazinePropertiesCommand {
   switchCabinetColor?: string;
   controlPanelColor?: string;
   documentationLanguage?: string;
-  documentationCount?: string;
   buildVariant?: string;
   operatingVoltage?: string;
   latheManufacturer?: string;
@@ -114,48 +112,6 @@ export interface UpdateMagazinePropertiesCommand {
   magazinePropertiesNotes?: string;
 }
 
-// PDF-Extraktion (für POST /api/Machines/{id}/magazine/from-pdf)
-export interface ExtractedMachineData {
-  // Basis-Daten
-  machineNumber?: string;
-  magazineType?: string;
-  materialBarLength?: number;
-  hasSynchronizationDevice?: boolean;
-  feedChannel?: string;
-  feedRod?: string;
-  
-  // Alle erweiterten Eigenschaften
-  customerName?: string;
-  customerNumber?: string;
-  customerProcess?: string;
-  productionWeek?: string;
-  baseColor?: string;
-  coverColor?: string;
-  switchCabinetColor?: string;
-  controlPanelColor?: string;
-  documentationLanguage?: string;
-  documentationCount?: string;
-  buildVariant?: string;
-  operatingVoltage?: string;
-  latheManufacturer?: string;
-  latheType?: string;
-  latheNumber?: string;
-  spindleHeight?: string;
-  spindleDiameter?: string;
-  magazineNumber?: string;
-  positionNumber?: string;
-  controlPanel?: string;
-  apm?: string;
-  eprom?: string;
-  circuitDiagram?: string;
-  drawingList?: string;
-  articleNumber?: string;
-  
-  // Metadaten
-  extractionConfidence?: number;
-  extractionSource?: string;
-  extractedAt?: string;
-}
 
 // Magazin-Eigenschaften Gruppierung für bessere UI-Organisation
 export interface MagazinePropertiesGroups {
@@ -188,7 +144,6 @@ export interface MagazinePropertiesGroups {
   
   documentation: {
     documentationLanguage?: string;
-    documentationCount?: string;
   };
   
   lathe: {
@@ -336,7 +291,6 @@ export const MAGAZINE_PROPERTIES_METADATA: MagazinePropertyMetadata[] = [
   
   // Documentation Group
   { key: 'documentationLanguage', label: 'Dokumentationssprache', group: 'documentation', type: 'select', options: ['Deutsch', 'English', 'Français', 'Español'] },
-  { key: 'documentationCount', label: 'Anzahl Dokumentation', group: 'documentation', type: 'text' },
   
   // Lathe Group
   { key: 'latheManufacturer', label: 'Drehmaschinen-Hersteller', group: 'lathe', type: 'text' },
@@ -386,7 +340,6 @@ export const getMagazinePropertyGroups = (machine: Machine): MagazinePropertiesG
     },
     documentation: {
       documentationLanguage: machine.documentationLanguage,
-      documentationCount: machine.documentationCount,
     },
     lathe: {
       latheManufacturer: machine.latheManufacturer,

@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMachines, useDeleteMachine } from '../../hooks/useMachines';
+import { PdfImportModal } from '../../components/pdf-import/PdfImportModal';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   MagnifyingGlassIcon, 
   PlusIcon,
@@ -13,12 +15,12 @@ import {
   ExclamationTriangleIcon,
   WrenchScrewdriverIcon,
   FunnelIcon,
-  DocumentArrowUpIcon,
   Squares2X2Icon,
   ListBulletIcon,
   ClockIcon,
   CalendarDaysIcon,
-  ArrowUpIcon
+  ArrowUpIcon,
+  DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
 
 type ViewMode = 'grid' | 'table';
@@ -29,13 +31,15 @@ const MachineList = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [machineToDelete, setMachineToDelete] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPdfImport, setShowPdfImport] = useState(false);
   
   const { data: machines, isLoading, error } = useMachines();
   const deleteMachine = useDeleteMachine();
+  const queryClient = useQueryClient();
 
   const filteredMachines = machines?.filter(machine => {
     const matchesSearch = machine.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         machine.type.toLowerCase().includes(searchQuery.toLowerCase());
+                         (machine.magazineType || machine.type).toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || machine.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -93,6 +97,36 @@ const MachineList = () => {
     return { level: 'low', color: 'text-green-600', bg: 'bg-green-50', label: 'Niedrig' };
   };
 
+  // Berechne Magazin-Alter in Jahren aus Produktionswoche (Format: "YYYY/WW" z.B. "2003/46")
+  const calculateMagazineAge = (productionWeek: string | undefined): string => {
+    if (!productionWeek) return '—';
+    
+    const match = productionWeek.match(/^(\d{4})\/(\d{1,2})$/);
+    if (!match) return '—';
+    
+    const [, yearStr, weekStr] = match;
+    const productionYear = parseInt(yearStr);
+    const productionWeekNum = parseInt(weekStr);
+    
+    // Berechne das Datum aus Jahr und Kalenderwoche
+    const jan1 = new Date(productionYear, 0, 1);
+    const daysToAdd = (productionWeekNum - 1) * 7;
+    const productionDate = new Date(jan1.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+    
+    // Berechne die Differenz in Jahren
+    const now = new Date();
+    const diffYears = now.getFullYear() - productionDate.getFullYear();
+    const diffMonths = now.getMonth() - productionDate.getMonth();
+    
+    // Genauere Berechnung
+    let age = diffYears;
+    if (diffMonths < 0 || (diffMonths === 0 && now.getDate() < productionDate.getDate())) {
+      age--;
+    }
+    
+    return age > 0 ? `${age} Jahre` : '< 1 Jahr';
+  };
+
   // Delete handlers
   const handleDeleteClick = (machineId: string) => {
     setMachineToDelete(machineId);
@@ -119,6 +153,12 @@ const MachineList = () => {
   const getMachineToDeleteInfo = () => {
     if (!machineToDelete || !machines) return null;
     return machines.find(m => m.id === machineToDelete);
+  };
+
+  const handlePdfImportComplete = () => {
+    // Refetch machines data nach PDF import
+    queryClient.invalidateQueries({ queryKey: ['machines'] });
+    setShowPdfImport(false);
   };
 
   if (isLoading) {
@@ -156,14 +196,13 @@ const MachineList = () => {
         </div>
         
         <div className="flex items-center space-x-3">
-          <Link 
-            to="/machines/upload"
+          <button
+            onClick={() => setShowPdfImport(true)}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             <DocumentArrowUpIcon className="h-4 w-4" />
             <span>PDF Import</span>
-          </Link>
-          
+          </button>
           <Link 
             to="/machines/create"
             className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
@@ -316,7 +355,7 @@ const MachineList = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Betriebsstunden
+                      Magazin-Alter
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Wartungsstatus
@@ -355,7 +394,7 @@ const MachineList = () => {
                               >
                                 {machine.number}
                               </Link>
-                              <div className="text-sm text-gray-500">{machine.type}</div>
+                              <div className="text-sm text-gray-500">{machine.magazineType || machine.type}</div>
                             </div>
                           </div>
                         </td>
@@ -369,15 +408,10 @@ const MachineList = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">
+                            <CalendarDaysIcon className="h-4 w-4 text-gray-400" />
                             <span className="text-sm font-medium text-gray-900">
-                              {machine.operatingHours.toLocaleString()} h
+                              {calculateMagazineAge(machine.productionWeek)}
                             </span>
-                            {machine.operatingHours > 1000 && (
-                              <div className={`flex items-center space-x-1 ${urgency.color}`}>
-                                <ArrowUpIcon className="h-3 w-3" />
-                                <span className="text-xs font-medium">{urgency.label}</span>
-                              </div>
-                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -467,14 +501,8 @@ const MachineList = () => {
                   {/* Metrics */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <p className="text-lg font-bold text-gray-900">{machine.operatingHours.toLocaleString()}</p>
-                      <p className="text-xs text-gray-600">Betriebsstunden</p>
-                      {machine.operatingHours > 1000 && (
-                        <div className={`flex items-center justify-center space-x-1 mt-1 ${urgency.color}`}>
-                          <ArrowUpIcon className="h-3 w-3" />
-                          <span className="text-xs font-medium">{urgency.label}</span>
-                        </div>
-                      )}
+                      <p className="text-lg font-bold text-gray-900">{calculateMagazineAge(machine.productionWeek)}</p>
+                      <p className="text-xs text-gray-600">Magazinalter</p>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <p className="text-lg font-bold text-gray-900">
@@ -545,18 +573,11 @@ const MachineList = () => {
           {!searchQuery && statusFilter === 'all' && (
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link 
-                to="/machines/upload"
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <DocumentArrowUpIcon className="h-4 w-4" />
-                <span>PDF Import starten</span>
-              </Link>
-              <Link 
                 to="/machines/create"
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
               >
                 <PlusIcon className="h-4 w-4" />
-                <span>Manuell erstellen</span>
+                <span>Maschine erstellen</span>
               </Link>
             </div>
           )}
@@ -651,6 +672,13 @@ const MachineList = () => {
           </div>
         </div>
       )}
+
+      {/* PDF Import Modal */}
+      <PdfImportModal
+        isOpen={showPdfImport}
+        onClose={() => setShowPdfImport(false)}
+        onImportComplete={handlePdfImportComplete}
+      />
     </div>
   );
 };

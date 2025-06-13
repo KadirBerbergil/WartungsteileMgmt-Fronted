@@ -17,7 +17,6 @@ import {
   DocumentTextIcon,
   WrenchScrewdriverIcon,
   BoltIcon,
-  CubeIcon,
   ClockIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -45,6 +44,9 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['basic', 'customer']));
   const [showEmptyFields, setShowEmptyFields] = useState(true);
   
+  // Debug: Machine Prop prüfen
+  console.log('🔍 MagazinePropertiesEditor - machine prop:', machine);
+  
   const [formData, setFormData] = useState<UpdateMagazinePropertiesCommand>({});
   const [originalData, setOriginalData] = useState<UpdateMagazinePropertiesCommand>({});
 
@@ -58,15 +60,18 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       if (typeof value === 'string' && value.trim() === '') return false;
       if (typeof value === 'number' && value === 0) return false;
       if (typeof value === 'boolean') return true; // Boolean-Felder sind immer "ausgefüllt"
+      // Debug für Synchroneinrichtung
+      if (value === false || value === true) return true; // Explizit false/true prüfen
       return true;
     };
 
     const fieldGroups = [
-      // Basic (5 Felder)
+      // Basic (6 Felder)
       { 
         name: 'Basic',
         fields: [
           formData.magazineType,
+          formData.number,
           formData.materialBarLength, 
           formData.hasSynchronizationDevice,
           formData.feedChannel,
@@ -101,12 +106,11 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           formData.controlPanelColor
         ]
       },
-      // Documentation (2 Felder)
+      // Documentation (1 Feld)
       {
         name: 'Documentation',
         fields: [
-          formData.documentationLanguage,
-          formData.documentationCount
+          formData.documentationLanguage
         ]
       },
       // Lathe (5 Felder)
@@ -120,24 +124,15 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           formData.spindleDiameter
         ]
       },
-      // Electrical (7 Felder)
+      // Electrical (5 Felder)
       {
         name: 'Electrical',
         fields: [
-          formData.magazineNumber,
-          formData.positionNumber,
           formData.controlPanel,
           formData.apm,
           formData.eprom,
           formData.circuitDiagram,
           formData.drawingList
-        ]
-      },
-      // Article (1 Feld)
-      {
-        name: 'Article',
-        fields: [
-          formData.articleNumber
         ]
       }
     ];
@@ -148,7 +143,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
 
     fieldGroups.forEach((group, groupIndex) => {
       let groupFilled = 0;
-      group.fields.forEach(fieldValue => {
+      group.fields.forEach((fieldValue, fieldIndex) => {
         totalFields++;
         if (isFieldFilled(fieldValue)) {
           filledFields++;
@@ -156,6 +151,10 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           if (groupIndex === 0) {
             basicFilledFields++;
           }
+        } else if (groupIndex === 0) {
+          // Debug: Welches Basic-Feld ist nicht ausgefüllt?
+          const fieldNames = ['magazineType', 'number', 'materialBarLength', 'hasSynchronizationDevice', 'feedChannel', 'feedRod'];
+          console.log(`❌ Basic-Feld ${fieldNames[fieldIndex]} ist nicht ausgefüllt. Wert:`, fieldValue, 'Typ:', typeof fieldValue);
         }
       });
     });
@@ -177,14 +176,17 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
 
   // ✅ REPARIERT: Saubere Initialisierung mit useEffect - reagiert auf machine Änderungen
   useEffect(() => {
+    if (!machine) return;
+    
     console.log('🔄 Initialisiere formData mit machine:', machine);
     console.log('🔄 Machine ID:', machine.id, 'Keys:', Object.keys(machine));
     
     const initialData: UpdateMagazinePropertiesCommand = {
       // Basic
       magazineType: machine.magazineType || '',
+      number: machine.number || '', // Maschinennummer aus machine.number
       materialBarLength: machine.materialBarLength || 0,
-      hasSynchronizationDevice: machine.hasSynchronizationDevice || false,
+      hasSynchronizationDevice: machine.hasSynchronizationDevice ?? false,
       feedChannel: machine.feedChannel || '',
       feedRod: machine.feedRod || '',
       
@@ -206,7 +208,6 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       
       // Documentation
       documentationLanguage: machine.documentationLanguage || '',
-      documentationCount: machine.documentationCount || '',
       
       // Lathe
       latheManufacturer: machine.latheManufacturer || '',
@@ -217,15 +218,11 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       
       // Electrical
       magazineNumber: machine.magazineNumber || '',
-      positionNumber: machine.positionNumber || '',
       controlPanel: machine.controlPanel || '',
       apm: machine.apm || '',
       eprom: machine.eprom || '',
       circuitDiagram: machine.circuitDiagram || '',
       drawingList: machine.drawingList || '',
-      
-      // Article
-      articleNumber: machine.articleNumber || '',
       
       // Notes
       magazinePropertiesNotes: machine.magazinePropertiesNotes || ''
@@ -240,7 +237,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       console.log('🔄 Neue Machine-Daten empfangen, beende Edit-Modus');
       setIsEditing(false);
     }
-  }, [machine, machine.id]); // ✅ Abhängig von gesamtem machine Objekt UND machine.id
+  }, [machine?.id]); // Nur von machine.id abhängig
 
   // ✅ REPARIERT: useCallback für optimierte Handler
   const handleInputChange = useCallback((field: keyof UpdateMagazinePropertiesCommand, value: any) => {
@@ -345,13 +342,17 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
   // FIELD RENDERING (unverändert, aber optimiert)
   const renderField = useCallback((field: any) => {
     const value = formData[field.key as keyof UpdateMagazinePropertiesCommand];
-    const isEmpty = !value || (typeof value === 'string' && value.trim() === '') || value === 0;
+    // Für boolean-Felder wie hasSynchronizationDevice ist nur undefined/null "leer"
+    const isEmpty = field.type === 'boolean' 
+      ? value === undefined || value === null
+      : !value || (typeof value === 'string' && value.trim() === '') || value === 0;
     
     if (!showEmptyFields && isEmpty && !isEditing) {
       return null;
     }
 
     const fieldId = `field-${field.key}`;
+    const isReadOnly = field.readonly === true;
     
     return (
       <div key={field.key} className="space-y-2">
@@ -368,7 +369,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           )}
         </label>
         
-        {isEditing ? (
+        {isEditing && !isReadOnly ? (
           <div>
             {field.type === 'boolean' ? (
               <div className="flex items-center space-x-3 p-3 bg-white border border-gray-200 rounded hover:border-gray-300 transition-colors">
@@ -418,6 +419,14 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
               />
             )}
           </div>
+        ) : isEditing && isReadOnly ? (
+          // Readonly-Feld im Edit-Modus
+          <div className="bg-gray-100 border border-gray-200 p-3">
+            <span className="text-sm text-gray-900 font-medium">
+              {(value as string) || 'Nicht angegeben'}
+            </span>
+            <span className="text-xs text-gray-500 ml-2">(Nicht editierbar)</span>
+          </div>
         ) : (
           <div className={`group cursor-pointer border transition-all ${
             isEmpty 
@@ -434,7 +443,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
                 <div className="flex-1 min-w-0">
                   {field.type === 'boolean' ? (
                     <span className={`text-sm ${isEmpty ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
-                      {value ? 'Ja, vorhanden' : isEmpty ? 'Nicht angegeben' : 'Nein'}
+                      {isEmpty ? 'Nicht angegeben' : value ? 'Ja, vorhanden' : 'Nein, nicht vorhanden'}
                     </span>
                   ) : field.type === 'number' && field.key === 'materialBarLength' ? (
                     <span className={`text-sm ${isEmpty ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
@@ -475,7 +484,12 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
 
     const filledFields = group.fields.filter((field: any) => {
       const value = formData[field.key as keyof UpdateMagazinePropertiesCommand];
-      return value && (typeof value !== 'string' || value.trim() !== '') && value !== 0;
+      // Verwende dieselbe Logik wie isFieldFilled
+      if (value === null || value === undefined) return false;
+      if (typeof value === 'string' && value.trim() === '') return false;
+      if (typeof value === 'number' && value === 0) return false;
+      if (typeof value === 'boolean') return true; // Boolean ist immer ausgefüllt
+      return true;
     });
 
     const isEmpty = filledFields.length === 0;
@@ -591,6 +605,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       icon: CogIcon,
       fields: [
         { key: 'magazineType', label: 'Magazin-Typ', type: 'text', placeholder: 'z.B. minimag 20 S1' },
+        { key: 'number', label: 'Maschinennummer', type: 'text', placeholder: 'z.B. 13-220030', readonly: true },
         { key: 'materialBarLength', label: 'Materialstangenlänge (mm)', type: 'number', min: 0, max: 10000 },
         { key: 'hasSynchronizationDevice', label: 'Synchroneinrichtung', type: 'boolean' },
         { key: 'feedChannel', label: 'Zuführkanal', type: 'text', placeholder: 'z.B. Umrüstsatz D20/3200/1405' },
@@ -634,8 +649,7 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
           label: 'Dokumentationssprache', 
           type: 'select',
           options: ['', 'Deutsch', 'English', 'Français', 'Español', 'Italiano']
-        },
-        { key: 'documentationCount', label: 'Anzahl Dokumentation', type: 'text', placeholder: 'z.B. Deutsch' }
+        }
       ]
     },
     lathe: {
@@ -653,20 +667,11 @@ const MagazinePropertiesEditor: React.FC<MagazinePropertiesEditorProps> = ({
       title: 'Elektrische Daten',
       icon: BoltIcon,
       fields: [
-        { key: 'magazineNumber', label: 'Magazin-Nummer', type: 'text', placeholder: 'z.B. 48' },
-        { key: 'positionNumber', label: 'Positionsnummer', type: 'text', placeholder: 'z.B. 1' },
         { key: 'controlPanel', label: 'Bedienfeld', type: 'text', placeholder: 'z.B. B_M2_D4001' },
         { key: 'apm', label: 'APM', type: 'text', placeholder: 'z.B. --' },
         { key: 'eprom', label: 'EPROM', type: 'text', placeholder: 'z.B. B_M2_4001' },
         { key: 'circuitDiagram', label: 'Schaltplan', type: 'text', placeholder: 'z.B. 23D2130.9002' },
         { key: 'drawingList', label: 'Zeichnungsliste', type: 'text', placeholder: 'z.B. 1/128' }
-      ]
-    },
-    article: {
-      title: 'Artikel',
-      icon: CubeIcon,
-      fields: [
-        { key: 'articleNumber', label: 'Artikelnummer', type: 'text', placeholder: 'z.B. 048-32-1541-01BC' }
       ]
     }
   };

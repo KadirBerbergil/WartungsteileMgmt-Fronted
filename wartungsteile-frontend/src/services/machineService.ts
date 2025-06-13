@@ -3,8 +3,7 @@ import { api } from './api';
 import type { 
   Machine, 
   MachineDetail, 
-  UpdateMagazinePropertiesCommand, 
-  ExtractedMachineData
+  UpdateMagazinePropertiesCommand
 } from '../types/api';
 
 // ✅ UTILITY: Sichere ID-Validierung (konsistent mit Hooks)
@@ -138,7 +137,6 @@ export interface ChangeStatusResponse {
 
 // ✅ REQUEST TIMEOUT CONFIGURATION
 const API_TIMEOUT = 30000; // 30 Sekunden
-const BATCH_TIMEOUT = 300000; // 5 Minuten für Batch-Operations
 
 export const machineService = {
   // ========================================
@@ -573,36 +571,6 @@ export const machineService = {
     }
   },
 
-  updateMagazineFromPdf: async (
-    machineId: string, 
-    extractedData: ExtractedMachineData
-  ): Promise<{success: boolean, fieldsSet: number, completeness?: number}> => {
-    if (!isValidId(machineId)) {
-      throw new Error(`Ungültige Maschinen-ID: ${machineId}`);
-    }
-    
-    if (!extractedData || typeof extractedData !== 'object') {
-      throw new Error('Ungültige PDF-Extraktionsdaten');
-    }
-    
-    try {
-      const response = await api.post(`/Machines/${machineId}/magazine/from-pdf`, extractedData, { 
-        timeout: API_TIMEOUT 
-      });
-      
-      const responseData = response.data ?? {};
-      
-      return {
-        success: response.status === 200,
-        fieldsSet: typeof responseData.fieldsSet === 'number' ? responseData.fieldsSet : 0,
-        completeness: typeof responseData.completeness === 'number' ? responseData.completeness : undefined
-      };
-      
-    } catch (error: any) {
-      logError('updateMagazineFromPdf', error, { machineId });
-      throw new Error('Fehler beim PDF-Import der Magazin-Eigenschaften');
-    }
-  },
 
   // ✅ REPARIERT: Completeness ohne Infinite Recursion Risk
   getMagazineDataCompleteness: async (machineId: string): Promise<{
@@ -751,7 +719,7 @@ export const machineService = {
 
     // ✅ REPARIERT: Parallel Processing mit Concurrency-Limit
     const CONCURRENCY_LIMIT = 5; // Max 5 parallel requests
-    const batches = [];
+    const batches: Array<Array<{ machineData: any; magazineProperties: UpdateMagazinePropertiesCommand }>> = [];
     
     for (let i = 0; i < machines.length; i += CONCURRENCY_LIMIT) {
       batches.push(machines.slice(i, i + CONCURRENCY_LIMIT));

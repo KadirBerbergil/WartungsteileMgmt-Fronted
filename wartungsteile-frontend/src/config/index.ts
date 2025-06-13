@@ -2,13 +2,13 @@
 // ✅ KORRIGIERT: Proxy-basierte URLs verwenden
 
 export const API_BASE_URL = '/api'; // Nutzt Vite-Proxy - KORREKT!
+export const API_KEY = 'dev-key-123456'; // API Key für Entwicklung
 
 export const ENDPOINTS = {
   MACHINES: `${API_BASE_URL}/Machines`,
   MAINTENANCE_PARTS: `${API_BASE_URL}/MaintenanceParts`,
   COMPATIBILITY: `${API_BASE_URL}/MachinePartCompatibility`,
-  MAINTENANCE_PARTS_LIST: `${API_BASE_URL}/MaintenancePartsList`,
-  PDF_EXTRACT: `${API_BASE_URL}/Pdf`
+  MAINTENANCE_PARTS_LIST: `${API_BASE_URL}/MaintenancePartsList`
 } as const;
 
 // ✅ NEU: Umgebungs-spezifische Konfiguration
@@ -25,7 +25,6 @@ export const CONFIG = {
   FRONTEND: {
     DEFAULT_PAGE_SIZE: 20,
     MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-    SUPPORTED_FILE_TYPES: ['application/pdf'],
     AUTO_SAVE_DELAY: 2000, // 2 Sekunden
   },
   
@@ -60,8 +59,8 @@ export const CONFIG = {
 export const DEBUG_INFO = {
   FRONTEND_URL: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
   API_BASE_URL,
-  PROXY_TARGET: 'https://localhost:7024',
-  EXPECTED_BACKEND: 'https://localhost:7024/api',
+  PROXY_TARGET: 'http://localhost:5000',
+  EXPECTED_BACKEND: 'http://localhost:5000/api',
   BUILD_MODE: import.meta.env.MODE,
   IS_DEVELOPMENT: import.meta.env.DEV,
   IS_PRODUCTION: import.meta.env.PROD,
@@ -133,7 +132,6 @@ export const ERROR_MESSAGES = {
   MACHINE_NOT_FOUND: 'Die angeforderte Maschine wurde nicht gefunden.',
   PART_NOT_FOUND: 'Das angeforderte Wartungsteil wurde nicht gefunden.',
   BACKEND_UNREACHABLE: 'Backend nicht erreichbar. Bitte prüfen Sie die Verbindung.',
-  PDF_PROCESSING_FAILED: 'PDF-Verarbeitung fehlgeschlagen. Bitte versuchen Sie es erneut.',
 } as const;
 
 // ✅ NEU: Success Messages
@@ -148,7 +146,6 @@ export const SUCCESS_MESSAGES = {
   
   MAINTENANCE_COMPLETED: 'Wartung erfolgreich durchgeführt!',
   MAGAZINE_PROPERTIES_UPDATED: 'Magazin-Eigenschaften erfolgreich aktualisiert!',
-  PDF_IMPORT_SUCCESS: 'PDF-Import erfolgreich abgeschlossen!',
 } as const;
 
 // ✅ NEU: Utility Functions
