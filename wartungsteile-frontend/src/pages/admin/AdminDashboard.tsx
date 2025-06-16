@@ -31,7 +31,9 @@ import {
   Calendar,
   HardDrive,
   RefreshCw,
-  Key
+  Key,
+  BarChart3,
+  Loader2
 } from 'lucide-react';
 
 interface ActivityLog {
@@ -105,6 +107,10 @@ const AdminDashboard: React.FC = () => {
   const [passwordResetUser, setPasswordResetUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmDeleteItem, setConfirmDeleteItem] = useState<DeletedItem | null>(null);
+  const [maintenanceLoading, setMaintenanceLoading] = useState<{ [key: string]: boolean }>({});
+  const [maintenanceResults, setMaintenanceResults] = useState<{ [key: string]: any }>({});
+  const [dbStats, setDbStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
@@ -405,6 +411,68 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Lade Datenbank-Statistiken
+  const loadDatabaseStats = async () => {
+    setStatsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/admin/maintenance/statistics`, {
+        headers: { 
+          'X-API-Key': API_KEY,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDbStats(data.statistics);
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Datenbank-Statistiken:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Führe Wartungsaufgabe aus
+  const executeMaintenance = async (action: string, endpoint: string) => {
+    setMaintenanceLoading({ ...maintenanceLoading, [action]: true });
+    setMaintenanceResults({ ...maintenanceResults, [action]: null });
+    
+    try {
+      const response = await fetch(`${API_URL}/admin/maintenance/${endpoint}`, {
+        method: 'POST',
+        headers: { 
+          'X-API-Key': API_KEY,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setMaintenanceResults({ ...maintenanceResults, [action]: result });
+        
+        // Lade Statistiken neu nach Wartungsaktionen
+        if (action !== 'statistics') {
+          setTimeout(loadDatabaseStats, 1000);
+        }
+      } else {
+        const error = await response.json();
+        setMaintenanceResults({ 
+          ...maintenanceResults, 
+          [action]: { error: error.details || error.error || 'Fehler bei der Ausführung' }
+        });
+      }
+    } catch (error) {
+      console.error(`Fehler bei ${action}:`, error);
+      setMaintenanceResults({ 
+        ...maintenanceResults, 
+        [action]: { error: 'Netzwerkfehler' }
+      });
+    } finally {
+      setMaintenanceLoading({ ...maintenanceLoading, [action]: false });
+    }
+  };
+
   // Lade Benutzer vom Backend
   const loadUsers = async () => {
     setLoading(true);
@@ -477,7 +545,7 @@ const AdminDashboard: React.FC = () => {
   // Export-Funktion
   const exportData = async (format: 'excel' | 'csv') => {
     try {
-      const response = await fetch(`/api/admin/export/${format}`, {
+      const response = await fetch(`/api/export/${format}`, {
         headers: { 
           'X-API-Key': 'dev-key-123456',
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -514,6 +582,7 @@ const AdminDashboard: React.FC = () => {
       loadUsers();
     } else if (activeSection === 'backup') {
       loadBackupJobs();
+      loadDatabaseStats();
     }
   }, [activeSection]);
 
@@ -1218,84 +1287,117 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-sm text-gray-600 mb-4">
                   Optimieren Sie die Datenbank-Performance.
                 </p>
+                
+                {/* Datenbank-Statistiken */}
+                {dbStats && (
+                  <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      Datenbank-Statistiken
+                    </h4>
+                    {dbStats.database && (
+                      <p className="text-xs text-gray-600 mb-1">
+                        Größe: {dbStats.database.sizeInMB} MB ({dbStats.database.tableCount} Tabellen)
+                      </p>
+                    )}
+                    {dbStats.tempFiles && (
+                      <p className="text-xs text-gray-600">
+                        Temp-Dateien: {dbStats.tempFiles.count} ({dbStats.tempFiles.sizeInMB} MB)
+                      </p>
+                    )}
+                  </div>
+                )}
+                
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm">Alte Logs löschen (älter als 90 Tage)</span>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/admin/maintenance/clean-logs', {
-                            method: 'POST',
-                            headers: { 
-                              'X-API-Key': 'dev-key-123456',
-                              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                            }
-                          });
-                          if (response.ok) {
-                            const result = await response.json();
-                            alert(result.message);
-                          }
-                        } catch (error) {
-                          console.error('Error cleaning logs:', error);
-                        }
-                      }}
-                    >
-                      Ausführen
-                    </Button>
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-medium">Alte Logs löschen</span>
+                        <p className="text-xs text-gray-500">Entfernt Logs älter als 90 Tage</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        disabled={maintenanceLoading['cleanLogs']}
+                        onClick={() => executeMaintenance('cleanLogs', 'clean-logs')}
+                      >
+                        {maintenanceLoading['cleanLogs'] ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Läuft...</>
+                        ) : (
+                          'Ausführen'
+                        )}
+                      </Button>
+                    </div>
+                    {maintenanceResults['cleanLogs'] && (
+                      <div className={`mt-2 p-2 rounded text-xs ${
+                        maintenanceResults['cleanLogs'].error ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+                      }`}>
+                        {maintenanceResults['cleanLogs'].error || 
+                         (maintenanceResults['cleanLogs'].deletedCount > 0 
+                           ? `✓ ${maintenanceResults['cleanLogs'].deletedCount} Einträge gelöscht`
+                           : '✓ Keine alten Logs gefunden - Datenbank ist bereits sauber')}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm">Datenbank-Index neu aufbauen</span>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/admin/maintenance/rebuild-indexes', {
-                            method: 'POST',
-                            headers: { 
-                              'X-API-Key': 'dev-key-123456',
-                              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                            }
-                          });
-                          if (response.ok) {
-                            const result = await response.json();
-                            alert(result.message);
-                          }
-                        } catch (error) {
-                          console.error('Error rebuilding indexes:', error);
-                        }
-                      }}
-                    >
-                      Ausführen
-                    </Button>
+                  
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-medium">Datenbank-Index neu aufbauen</span>
+                        <p className="text-xs text-gray-500">Optimiert Tabellen und Indizes</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        disabled={maintenanceLoading['rebuildIndexes']}
+                        onClick={() => executeMaintenance('rebuildIndexes', 'rebuild-indexes')}
+                      >
+                        {maintenanceLoading['rebuildIndexes'] ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Läuft...</>
+                        ) : (
+                          'Ausführen'
+                        )}
+                      </Button>
+                    </div>
+                    {maintenanceResults['rebuildIndexes'] && (
+                      <div className={`mt-2 p-2 rounded text-xs ${
+                        maintenanceResults['rebuildIndexes'].error ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+                      }`}>
+                        {maintenanceResults['rebuildIndexes'].error || 
+                         `✓ Index-Wartung erfolgreich durchgeführt (${maintenanceResults['rebuildIndexes'].tablesOptimized} Tabellen verarbeitet)`}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm">Temporäre Dateien bereinigen</span>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/admin/maintenance/clean-temp', {
-                            method: 'POST',
-                            headers: { 
-                              'X-API-Key': 'dev-key-123456',
-                              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                            }
-                          });
-                          if (response.ok) {
-                            const result = await response.json();
-                            alert(result.message);
-                          }
-                        } catch (error) {
-                          console.error('Error cleaning temp files:', error);
-                        }
-                      }}
-                    >
-                      Ausführen
-                    </Button>
+                  
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-medium">Temporäre Dateien bereinigen</span>
+                        <p className="text-xs text-gray-500">Löscht Dateien älter als 7 Tage</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        disabled={maintenanceLoading['cleanTemp']}
+                        onClick={() => executeMaintenance('cleanTemp', 'clean-temp')}
+                      >
+                        {maintenanceLoading['cleanTemp'] ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Läuft...</>
+                        ) : (
+                          'Ausführen'
+                        )}
+                      </Button>
+                    </div>
+                    {maintenanceResults['cleanTemp'] && (
+                      <div className={`mt-2 p-2 rounded text-xs ${
+                        maintenanceResults['cleanTemp'].error ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+                      }`}>
+                        {maintenanceResults['cleanTemp'].error || 
+                         (maintenanceResults['cleanTemp'].filesDeleted > 0
+                           ? `✓ ${maintenanceResults['cleanTemp'].filesDeleted} Dateien gelöscht (${maintenanceResults['cleanTemp'].spaceFreed})`
+                           : '✓ Keine alten temporären Dateien gefunden - System ist bereits sauber')}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
